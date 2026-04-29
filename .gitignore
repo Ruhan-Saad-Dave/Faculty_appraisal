@@ -1,0 +1,7 @@
+__pycache__/
+-p/ 
+.venv/
+
+
+gemini.md
+.env
