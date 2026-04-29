@@ -1,0 +1,124 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from typing import List
+
+from ....setup.dependencies import get_db
+from ....schema.Part_B.self_development_fdp import (
+    SelfDevelopmentFDPCreate,
+    SelfDevelopmentFDPUpdateFaculty,
+    SelfDevelopmentFDPUpdateHOD,
+    SelfDevelopmentFDPUpdateDirector,
+    SelfDevelopmentFDPResponse,
+    SelfDevelopmentFDPSummary,
+)
+from ....crud.Part_B import self_development_fdp as crud_self_development_fdp
+from ....models.Part_B.self_development_fdp import SelfDevelopmentFDP as DBSelfDevelopmentFDP
+
+router = APIRouter()
+
+# Placeholder for authentication and authorization
+class User:
+    def __init__(self, id: int, roles: List[str]):
+        self.id = id
+        self.roles = roles
+
+def get_current_user():
+    # This is a mock user for demonstration. Replace with actual authentication.
+    return User(id=1, roles=["faculty"]) # Default to faculty for now
+
+@router.post("/self-development-fdp", response_model=SelfDevelopmentFDPResponse, status_code=status.HTTP_201_CREATED)
+def create_self_development_fdp(
+    fdp: SelfDevelopmentFDPCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if "faculty" not in current_user.roles:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create self-development FDP entries")
+    
+    return crud_self_development_fdp.create_self_development_fdp(db=db, fdp=fdp, faculty_id=current_user.id)
+
+@router.get("/self-development-fdp/faculty/{faculty_id}", response_model=List[SelfDevelopmentFDPResponse])
+def read_self_development_fdp_by_faculty(
+    faculty_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if "admin" not in current_user.roles and current_user.id != faculty_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's self-development FDP entries")
+    
+    fdp_entries = crud_self_development_fdp.get_self_development_fdp_by_faculty(db, faculty_id=faculty_id, skip=skip, limit=limit)
+    return fdp_entries
+
+@router.get("/self-development-fdp", response_model=List[SelfDevelopmentFDPResponse])
+def read_all_self_development_fdp(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if "admin" not in current_user.roles:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all self-development FDP entries")
+    
+    fdp_entries = crud_self_development_fdp.get_all_self_development_fdp(db, skip=skip, limit=limit)
+    return fdp_entries
+
+@router.put("/self-development-fdp/{fdp_id}", response_model=SelfDevelopmentFDPResponse)
+def update_self_development_fdp(
+    fdp_id: int,
+    fdp_update: SelfDevelopmentFDPUpdateFaculty, # Default to faculty update schema
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_fdp = crud_self_development_fdp.get_self_development_fdp(db, fdp_id)
+    if db_fdp is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Self-Development FDP entry not found")
+
+    # Role-based update logic
+    if "admin" in current_user.roles:
+        updated_fdp = crud_self_development_fdp.update_self_development_fdp_faculty(db, fdp_id, fdp_update)
+    elif "hod" in current_user.roles:
+        if not isinstance(fdp_update, SelfDevelopmentFDPUpdateHOD):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="HOD can only update api_score_hod")
+        updated_fdp = crud_self_development_fdp.update_self_development_fdp_hod(db, fdp_id, fdp_update)
+    elif "director" in current_user.roles:
+        if not isinstance(fdp_update, SelfDevelopmentFDPUpdateDirector):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Director can only update api_score_director")
+        updated_fdp = crud_self_development_fdp.update_self_development_fdp_director(db, fdp_id, fdp_update)
+    elif "faculty" in current_user.roles and db_fdp.faculty_id == current_user.id:
+        updated_fdp = crud_self_development_fdp.update_self_development_fdp_faculty(db, fdp_id, fdp_update)
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this self-development FDP entry")
+
+    if updated_fdp is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update self-development FDP entry")
+    return updated_fdp
+
+@router.delete("/self-development-fdp/{fdp_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_self_development_fdp(
+    fdp_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_fdp = crud_self_development_fdp.get_self_development_fdp(db, fdp_id)
+    if db_fdp is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Self-Development FDP entry not found")
+
+    if "admin" not in current_user.roles and db_fdp.faculty_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this self-development FDP entry")
+    
+    crud_self_development_fdp.delete_self_development_fdp(db, fdp_id)
+    return {"message": "Self-Development FDP entry deleted successfully"}
+
+@router.get("/self-development-fdp/summary/{faculty_id}", response_model=SelfDevelopmentFDPSummary)
+def get_self_development_fdp_summary(
+    faculty_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if "admin" not in current_user.roles and current_user.id != faculty_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")
+    
+    total_score = crud_self_development_fdp.get_self_development_fdp_total_score(db, faculty_id)
+    return SelfDevelopmentFDPSummary(total_score=total_score)
