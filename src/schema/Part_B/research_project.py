@@ -1,0 +1,48 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import date
+
+# Base schema for common attributes
+class ResearchProjectBase(BaseModel):
+    project_name: str = Field(..., max_length=500)
+    funding_agency: str = Field(..., max_length=255)
+    date_of_sanction: date
+    funding_amount: float
+    role: str = Field(..., max_length=50)
+    project_status: str = Field(..., max_length=50)
+
+# Schema for creating a new Research Project entry (Faculty input)
+class ResearchProjectCreate(ResearchProjectBase):
+    pass
+
+# Schema for faculty to update their own Research Project entry
+class ResearchProjectUpdateFaculty(ResearchProjectBase):
+    project_name: Optional[str] = Field(None, max_length=500)
+    funding_agency: Optional[str] = Field(None, max_length=255)
+    date_of_sanction: Optional[date] = None
+    funding_amount: Optional[float] = None
+    role: Optional[str] = Field(None, max_length=50)
+    project_status: Optional[str] = Field(None, max_length=50)
+
+# Schema for HOD to update API score
+class ResearchProjectUpdateHOD(BaseModel):
+    api_score_hod: float
+
+# Schema for Director to update API score
+class ResearchProjectUpdateDirector(BaseModel):
+    api_score_director: float
+
+# Schema for API response
+class ResearchProjectResponse(ResearchProjectBase):
+    id: int
+    faculty_id: int
+    api_score_faculty: float
+    api_score_hod: float
+    api_score_director: float
+
+    class Config:
+        from_attributes = True
+
+# Schema for total score summary
+class ResearchProjectSummary(BaseModel):
+    total_score: float
