@@ -9,6 +9,8 @@ class ConferencePaperBase(BaseModel):
     activity_type: str = Field(..., max_length=50) # Lecture / Resource Person / Paper / Proceedings
     hosting_organization: str = Field(..., max_length=255)
     event_level: str = Field(..., max_length=50) # International / National
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Conference Paper entry (Faculty input)
 class ConferencePaperCreate(ConferencePaperBase):

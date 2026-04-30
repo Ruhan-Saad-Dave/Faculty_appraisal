@@ -5,6 +5,8 @@ from typing import Optional
 class ProductDevelopmentBase(BaseModel):
     product_description: str = Field(..., max_length=500)
     usage_type: str = Field(..., max_length=50) # Used in Lab / Commercialized
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Product Development entry (Faculty input)
 class ProductDevelopmentCreate(ProductDevelopmentBase):

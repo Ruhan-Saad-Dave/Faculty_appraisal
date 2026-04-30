@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, Double
 from sqlalchemy.orm import relationship
-from ....setup.database import Base
-from ..faculty import Faculty  # Import Faculty model for relationship
+from src.setup.database import Base
+from src.models.Part_B.faculty import Faculty  # Import Faculty model for relationship
 
 class SelfDevelopmentFDP(Base):
     __tablename__ = "self_development_fdp"
@@ -14,5 +14,7 @@ class SelfDevelopmentFDP(Base):
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
     api_score_director = Column(Double, default=0.0)
+    department = Column(String, nullable=True)
+    document = Column(String, nullable=True)
 
     faculty = relationship("Faculty", back_populates="self_development_fdp_entries")

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.conference_paper import ConferencePaper
-from ..schema.Part_B.conference_paper import (
+from src.models.Part_B.conference_paper import ConferencePaper
+from src.schema.Part_B.conference_paper import (
     ConferencePaperCreate,
     ConferencePaperUpdateFaculty,
     ConferencePaperUpdateHOD,

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.journal_publication import JournalPublication
-from ..schema.Part_B.journal_publication import (
+from src.models.Part_B.journal_publication import JournalPublication
+from src.schema.Part_B.journal_publication import (
     JournalPublicationCreate,
     JournalPublicationUpdateFaculty,
     JournalPublicationUpdateHOD,

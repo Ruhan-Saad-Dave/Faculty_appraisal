@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from .setup.database import engine, Base
-from .models import faculty # Import faculty model to ensure table creation
+from .models.Part_B import faculty # Import faculty model to ensure table creation
 from .models.Part_B.journal_publication import JournalPublication # Import journal_publication model to ensure table creation
 from .models.Part_B.book_publication import BookPublication # Import book_publication model to ensure table creation
 from .models.Part_B.ict_pedagogy import ICTPedagogy # Import ict_pedagogy model to ensure table creation

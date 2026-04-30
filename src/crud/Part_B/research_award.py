@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.research_award import ResearchAward
-from ..schema.Part_B.research_award import (
+from src.models.Part_B.research_award import ResearchAward
+from src.schema.Part_B.research_award import (
     ResearchAwardCreate,
     ResearchAwardUpdateFaculty,
     ResearchAwardUpdateHOD,

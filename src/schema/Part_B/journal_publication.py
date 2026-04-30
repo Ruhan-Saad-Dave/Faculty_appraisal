@@ -8,6 +8,8 @@ class JournalPublicationBase(BaseModel):
     journal_details: Optional[str] = Field(None, max_length=65535) # TEXT in DB
     issn_isbn_no: Optional[str] = Field(None, max_length=50)
     indexing: Optional[IndexingEnum] = None
+    department: Optional[str] = None # Added as per user request
+    document: Optional[str] = None # Added as per user request (Google Drive link)
 
 class JournalPublicationCreate(JournalPublicationBase):
     pass

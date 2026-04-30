@@ -1,47 +1,47 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
-# Base schema for common attributes
 class BookPublicationBase(BaseModel):
-    chapter_title: str = Field(..., max_length=255)
-    book_details: str = Field(..., max_length=500)
-    isbn: str = Field(..., max_length=50)
-    publisher_type: str = Field(..., max_length=50)
-    co_author_count: int
-    is_first_author: bool
+    title_and_pages: str = Field(..., description="Title of the chapter/book and page numbers")
+    book_title_editor: str = Field(..., description="Title of the book and editor's name")
+    issn_isbn: str = Field(..., description="ISSN/ISBN number")
+    publisher_type: str = Field(..., description="Type of publisher (e.g., National, International)")
+    co_authors_count: int = Field(..., description="Number of co-authors")
+    is_first_author: bool = Field(False, description="True if the faculty is the first author")
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
-# Schema for creating a new book publication (Faculty input)
 class BookPublicationCreate(BookPublicationBase):
     pass
 
-# Schema for faculty to update their own book publication
 class BookPublicationUpdateFaculty(BookPublicationBase):
-    chapter_title: Optional[str] = Field(None, max_length=255)
-    book_details: Optional[str] = Field(None, max_length=500)
-    isbn: Optional[str] = Field(None, max_length=50)
-    publisher_type: Optional[str] = Field(None, max_length=50)
-    co_author_count: Optional[int] = None
-    is_first_author: Optional[bool] = None
+    title_and_pages: Optional[str] = Field(None, description="Title of the chapter/book and page numbers")
+    book_title_editor: Optional[str] = Field(None, description="Title of the book and editor's name")
+    issn_isbn: Optional[str] = Field(None, description="ISSN/ISBN number")
+    publisher_type: Optional[str] = Field(None, description="Type of publisher (e.g., National, International)")
+    co_authors_count: Optional[int] = Field(None, description="Number of co-authors")
+    is_first_author: Optional[bool] = Field(None, description="True if the faculty is the first author")
+    department: Optional[str] = Field(None, description="Department of the faculty")
+    document: Optional[str] = Field(None, description="Google Drive link to the document")
 
-# Schema for HOD to update API score
 class BookPublicationUpdateHOD(BaseModel):
-    api_score_hod: float
+    api_score_hod: int = Field(..., description="API score given by HOD")
 
-# Schema for Director to update API score
 class BookPublicationUpdateDirector(BaseModel):
-    api_score_director: float
+    api_score_director: int = Field(..., description="API score given by Director")
 
-# Schema for API response
 class BookPublicationResponse(BookPublicationBase):
     id: int
     faculty_id: int
-    api_score_faculty: float
-    api_score_hod: float
-    api_score_director: float
+    api_score_faculty: int
+    api_score_hod: int
+    api_score_director: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
 
-# Schema for total score summary
 class BookPublicationSummary(BaseModel):
     total_score: float

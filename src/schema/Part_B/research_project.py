@@ -10,6 +10,8 @@ class ResearchProjectBase(BaseModel):
     funding_amount: float
     role: str = Field(..., max_length=50)
     project_status: str = Field(..., max_length=50)
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Research Project entry (Faculty input)
 class ResearchProjectCreate(ResearchProjectBase):

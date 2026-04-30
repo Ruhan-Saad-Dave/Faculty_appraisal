@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.research_guidance import ResearchGuidance
-from ..schema.Part_B.research_guidance import (
+from src.models.Part_B.research_guidance import ResearchGuidance
+from src.schema.Part_B.research_guidance import (
     ResearchGuidanceCreate,
     ResearchGuidanceUpdateFaculty,
     ResearchGuidanceUpdateHOD,

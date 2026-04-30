@@ -6,6 +6,8 @@ class IndustrialTrainingBase(BaseModel):
     company_industry: str = Field(..., max_length=255)
     duration_days: int
     nature_of_training: str = Field(..., max_length=500)
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Industrial Training entry (Faculty input)
 class IndustrialTrainingCreate(IndustrialTrainingBase):

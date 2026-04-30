@@ -7,6 +7,8 @@ class ICTPedagogyBase(BaseModel):
     description: str = Field(..., max_length=500)
     pedagogy_type: str = Field(..., max_length=100)
     quadrants: int
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new ICT Pedagogy entry (Faculty input)
 class ICTPedagogyCreate(ICTPedagogyBase):

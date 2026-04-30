@@ -7,6 +7,8 @@ class ResearchProposalBase(BaseModel):
     duration: str = Field(..., max_length=50)
     funding_agency: str = Field(..., max_length=255)
     grant_amount: float
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Research Proposal entry (Faculty input)
 class ResearchProposalCreate(ResearchProposalBase):

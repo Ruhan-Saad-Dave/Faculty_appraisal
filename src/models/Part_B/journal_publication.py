@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, Double, ForeignKey, Enum
 from sqlalchemy.orm import relationship
-from ..setup.database import Base
+from src.setup.database import Base
 import enum
 
 class IndexingEnum(str, enum.Enum):
@@ -23,6 +23,8 @@ class JournalPublication(Base):
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
     api_score_director = Column(Double, default=0.0)
+    department = Column(String, nullable=True)
+    document = Column(String, nullable=True)
 
     # Relationship to Faculty (assuming a Faculty model will be created later)
     # faculty = relationship("Faculty", back_populates="journal_publications")

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.self_development_fdp import SelfDevelopmentFDP
-from ..schema.Part_B.self_development_fdp import (
+from src.models.Part_B.self_development_fdp import SelfDevelopmentFDP
+from src.schema.Part_B.self_development_fdp import (
     SelfDevelopmentFDPCreate,
     SelfDevelopmentFDPUpdateFaculty,
     SelfDevelopmentFDPUpdateHOD,

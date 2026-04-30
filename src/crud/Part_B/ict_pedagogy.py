@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.ict_pedagogy import ICTPedagogy
-from ..schema.Part_B.ict_pedagogy import (
+from src.models.Part_B.ict_pedagogy import ICTPedagogy
+from src.schema.Part_B.ict_pedagogy import (
     ICTPedagogyCreate,
     ICTPedagogyUpdateFaculty,
     ICTPedagogyUpdateHOD,

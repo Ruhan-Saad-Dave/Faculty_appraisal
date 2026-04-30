@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.book_publication import BookPublication
-from ..schema.Part_B.book_publication import (
+from src.models.Part_B.book_publication import BookPublication
+from src.schema.Part_B.book_publication import (
     BookPublicationCreate,
     BookPublicationUpdateFaculty,
     BookPublicationUpdateHOD,
@@ -66,5 +66,5 @@ def delete_book_publication(db: Session, publication_id: int) -> Optional[BookPu
 
 def get_book_publications_total_score(db: Session, faculty_id: int) -> float:
     publications = db.query(BookPublication).filter(BookPublication.faculty_id == faculty_id).all()
-    total_score = sum([pub.api_score_faculty for pub in publications])
+    total_score = sum([pub.api_score_faculty for pub in publications]) # Assuming faculty score contributes to total
     return total_score

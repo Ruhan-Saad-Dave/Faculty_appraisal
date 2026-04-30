@@ -6,6 +6,8 @@ class SelfDevelopmentFDPBase(BaseModel):
     program_name: str = Field(..., max_length=255)
     duration_days: int
     organizer: str = Field(..., max_length=255)
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Self Development FDP entry (Faculty input)
 class SelfDevelopmentFDPCreate(SelfDevelopmentFDPBase):

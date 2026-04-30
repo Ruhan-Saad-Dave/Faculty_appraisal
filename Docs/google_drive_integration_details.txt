@@ -1,0 +1,100 @@
+# Google Drive Integration Details for Document Uploads (Part B)
+
+This document outlines the non-code aspects and necessary modifications for integrating Google Drive to handle document uploads for all Part B API endpoints. The goal is to allow users to upload PDF documents via the frontend, have the backend store these documents in Google Drive, and then save the resulting Google Drive shareable link in the database.
+
+## 1. Google Cloud Project Setup
+
+This is a crucial one-time setup that needs to be performed in the Google Cloud Platform (GCP).
+
+*   **Create a GCP Project:** If you don't have one, create a new project in the [Google Cloud Console](https://console.cloud.google.com/).
+*   **Enable Google Drive API:** Navigate to "APIs & Services" -> "Library" and search for "Google Drive API". Enable it for your project.
+*   **Create Service Account Credentials:**
+    *   Go to "APIs & Services" -> "Credentials".
+    *   Click "Create Credentials" and select "Service Account".
+    *   Follow the steps to create a service account. Grant it appropriate roles (e.g., "Storage Object Creator" or a custom role with Drive access, or simply "Editor" for quick setup, but be mindful of permissions).
+    *   After creation, click on the service account email, then go to the "Keys" tab.
+    *   Click "Add Key" -> "Create new key" -> "JSON".
+    *   A JSON file will be downloaded. This file contains your service account's private key and other credentials. **This file is highly sensitive and must be kept secure. Never commit it to version control or expose it publicly.**
+    *   This JSON file will be used by the backend for authentication.
+
+## 2. Google Drive Folder Setup
+
+*   **Create a Dedicated Folder:** In your Google Drive, create a specific folder where all uploaded documents will be stored. This helps in organizing the files.
+*   **Get Folder ID:** Once the folder is created, open it in Google Drive. The folder ID is part of the URL (e.g., `https://drive.google.com/drive/folders/YOUR_FOLDER_ID`). Copy this ID.
+
+## 3. Environment Variables Configuration
+
+To keep sensitive information out of the codebase, we will use environment variables.
+
+*   **`.env` File:** Create or update your `.env` file in the project root with the following:
+    ```dotenv
+    GOOGLE_SERVICE_ACCOUNT_FILE=/path/to/your/service_account_key.json
+    GOOGLE_DRIVE_UPLOAD_FOLDER_ID=YOUR_GOOGLE_DRIVE_FOLDER_ID
+    ```
+    *   Replace `/path/to/your/service_account_key.json` with the absolute path to the JSON key file you downloaded in step 1.
+    *   Replace `YOUR_GOOGLE_DRIVE_FOLDER_ID` with the ID of the Google Drive folder you created in step 2.
+
+## 4. Database Schema Modifications (Part B Endpoints)
+
+For each Part B API endpoint that requires document uploads, the corresponding SQLAlchemy model and Pydantic schemas will need to be updated. Specifically, two new fields will be added:
+
+*   **`department` (String):** To store the department associated with the entry.
+*   **`document` (String):** To store the Google Drive `webViewLink` (the shareable URL) of the uploaded PDF document.
+
+Below is a list of Part B endpoints and how these new fields will apply to their payload/database entries:
+
+### Part B: Research and Academic Contributions
+
+1.  **Published Papers (`/published-papers`)**
+    *   Existing Payload Data Types: `title_and_pages`, `journal_details`, `issn_isbn`, `indexing`, `scopus_sci_ugc`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+2.  **Book Chapters (`/book-chapters`)**
+    *   Existing Payload Data Types: `title_and_pages`, `book_title_editor`, `issn_isbn`, `publisher_type`, `co_authors_count`, `is_first_author`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+3.  **ICT / Pedagogy (`/ict-pedagogy`)**
+    *   Existing Payload Data Types: `title`, `description`, `pedagogy_type`, `quadrants_count`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+4.  **Research Guidance (`/research-guidance`)**
+    *   Existing Payload Data Types: `degree_type`, `student_name`, `thesis_status_date`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+5.  **Research Projects (`/research-projects`)**
+    *   Existing Payload Data Types: `title`, `funding_agency`, `sanction_date`, `grant_amount_lakhs`, `status`, `start_date`, `end_date`, `co_investigators`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+6.  **Industrial Training (`/industrial-training`)**
+    *   Existing Payload Data Types: `organization`, `duration_weeks`, `start_date`, `end_date`, `details`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+7.  **IPR (Intellectual Property Rights) (`/ipr`)**
+    *   Existing Payload Data Types: `ipr_type`, `title`, `application_number`, `status`, `filing_date`, `grant_date`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+8.  **Product Development (`/product-development`)**
+    *   Existing Payload Data Types: `product_name`, `description`, `development_stage`, `commercialization_status`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+9.  **Research Award (`/research-award`)**
+    *   Existing Payload Data Types: `award_name`, `awarding_body`, `date_received`, `details`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+10. **Research Proposal (`/research-proposal`)**
+    *   Existing Payload Data Types: `title`, `funding_agency`, `submission_date`, `status`, `proposed_amount_lakhs`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+11. **Self-Development FDP (`/self-development-fdp`)**
+    *   Existing Payload Data Types: `program_name`, `organizing_body`, `duration_days`, `start_date`, `end_date`, `details`
+    *   **New Fields:** `department` (String), `document` (String - Google Drive Link)
+
+## 5. Backend Logic Overview
+
+The FastAPI backend will perform the following sequence of operations:
+1.  Receive the PDF file and other form data from the frontend via a `POST` request.
+2.  Authenticate with Google Drive using the service account credentials loaded from the `.env` file.
+3.  Upload the received PDF file to the specified Google Drive folder.
+4.  Obtain the `webViewLink` (shareable URL) for the uploaded file.
+5.  Store the `faculty_id`, `department`, `document` (Google Drive link), and other relevant data into the appropriate database table.
+6.  Return a success response to the frontend.

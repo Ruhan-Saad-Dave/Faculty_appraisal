@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.ipr import IPR
-from ..schema.Part_B.ipr import (
+from src.models.Part_B.ipr import IPR
+from src.schema.Part_B.ipr import (
     IPRCreate,
     IPRUpdateFaculty,
     IPRUpdateHOD,

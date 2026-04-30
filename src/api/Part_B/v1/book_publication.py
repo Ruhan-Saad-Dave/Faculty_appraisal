@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from ....setup.dependencies import get_db
 from ....schema.Part_B.book_publication import (
@@ -17,6 +17,7 @@ from ....models.Part_B.book_publication import BookPublication as DBBookPublicat
 router = APIRouter()
 
 # Placeholder for authentication and authorization
+# In a real application, this would involve actual user authentication and role checking
 class User:
     def __init__(self, id: int, roles: List[str]):
         self.id = id
@@ -24,6 +25,11 @@ class User:
 
 def get_current_user():
     # This is a mock user for demonstration. Replace with actual authentication.
+    # For testing different roles, you can modify this.
+    # Example: return User(id=1, roles=["faculty"])
+    # Example: return User(id=2, roles=["admin"])
+    # Example: return User(id=3, roles=["hod"])
+    # Example: return User(id=4, roles=["director"])
     return User(id=1, roles=["faculty"]) # Default to faculty for now
 
 @router.post("/book-publications", response_model=BookPublicationResponse, status_code=status.HTTP_201_CREATED)
@@ -35,6 +41,7 @@ def create_book_publication(
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create book publications")
     
+    # Assuming the faculty_id for creation comes from the authenticated user
     return crud_book_publication.create_book_publication(db=db, publication=publication, faculty_id=current_user.id)
 
 @router.get("/book-publications/faculty/{faculty_id}", response_model=List[BookPublicationResponse])

@@ -9,6 +9,8 @@ class IPRBase(BaseModel):
     filing_date: date
     status: str = Field(..., max_length=50) # Published / Granted
     patent_file_no: str = Field(..., max_length=100)
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new IPR entry (Faculty input)
 class IPRCreate(IPRBase):

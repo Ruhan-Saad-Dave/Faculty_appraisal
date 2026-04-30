@@ -8,6 +8,8 @@ class ResearchGuidanceBase(BaseModel):
     student_name: str = Field(..., max_length=255)
     submission_status: str
     award_date: Optional[date] = None
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Research Guidance entry (Faculty input)
 class ResearchGuidanceCreate(ResearchGuidanceBase):

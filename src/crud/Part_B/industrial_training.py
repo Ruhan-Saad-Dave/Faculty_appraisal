@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.industrial_training import IndustrialTraining
-from ..schema.Part_B.industrial_training import (
+from src.models.Part_B.industrial_training import IndustrialTraining
+from src.schema.Part_B.industrial_training import (
     IndustrialTrainingCreate,
     IndustrialTrainingUpdateFaculty,
     IndustrialTrainingUpdateHOD,

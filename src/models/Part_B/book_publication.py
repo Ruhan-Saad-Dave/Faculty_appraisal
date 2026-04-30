@@ -1,21 +1,28 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, Enum, Double
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from ....setup.database import Base
-from ..faculty import Faculty  # Import Faculty model for relationship
+from sqlalchemy.sql import func
+
+from src.setup.database import Base
 
 class BookPublication(Base):
     __tablename__ = "book_publications"
 
     id = Column(Integer, primary_key=True, index=True)
     faculty_id = Column(Integer, ForeignKey("faculty.id"))
-    chapter_title = Column(Text, nullable=False)
-    book_details = Column(Text, nullable=False)
-    isbn = Column(String(50), nullable=False)
-    publisher_type = Column(String(50), nullable=False) # ENUM / String
-    co_author_count = Column(Integer, nullable=False)
-    is_first_author = Column(Boolean, nullable=False)
-    api_score_faculty = Column(Double, default=0.0)
-    api_score_hod = Column(Double, default=0.0)
-    api_score_director = Column(Double, default=0.0)
+    title_and_pages = Column(String, index=True)
+    book_title_editor = Column(String)
+    issn_isbn = Column(String)
+    publisher_type = Column(String)
+    co_authors_count = Column(Integer)
+    is_first_author = Column(Boolean, default=False)
+    department = Column(String, nullable=True) # Added as per user request
+    document = Column(String, nullable=True) # Added as per user request (Google Drive link)
+
+    api_score_faculty = Column(Integer, default=0)
+    api_score_hod = Column(Integer, default=0)
+    api_score_director = Column(Integer, default=0)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
 
     faculty = relationship("Faculty", back_populates="book_publications")

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.research_proposal import ResearchProposal
-from ..schema.Part_B.research_proposal import (
+from src.models.Part_B.research_proposal import ResearchProposal
+from src.schema.Part_B.research_proposal import (
     ResearchProposalCreate,
     ResearchProposalUpdateFaculty,
     ResearchProposalUpdateHOD,

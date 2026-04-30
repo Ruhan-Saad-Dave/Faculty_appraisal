@@ -11,7 +11,7 @@ from ....schema.Part_B.journal_publication import (
     JournalPublicationResponse,
     JournalPublicationSummary,
 )
-from ....crud import journal_publication as crud_journal_publication
+from ....crud.Part_B import journal_publication as crud_journal_publication
 from ....models.Part_B.journal_publication import JournalPublication as DBJournalPublication
 
 router = APIRouter()

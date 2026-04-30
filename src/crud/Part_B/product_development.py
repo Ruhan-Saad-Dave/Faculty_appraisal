@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..models.Part_B.product_development import ProductDevelopment
-from ..schema.Part_B.product_development import (
+from src.models.Part_B.product_development import ProductDevelopment
+from src.schema.Part_B.product_development import (
     ProductDevelopmentCreate,
     ProductDevelopmentUpdateFaculty,
     ProductDevelopmentUpdateHOD,

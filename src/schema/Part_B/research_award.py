@@ -8,6 +8,10 @@ class ResearchAwardBase(BaseModel):
     award_date: date
     awarding_agency: str = Field(..., max_length=255)
     level: str = Field(..., max_length=50) # International / National
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
+    department: Optional[str] = Field(None, description="Department of the faculty") # Added as per user request
+    document: Optional[str] = Field(None, description="Google Drive link to the document") # Added as per user request
 
 # Schema for creating a new Research Award entry (Faculty input)
 class ResearchAwardCreate(ResearchAwardBase):
