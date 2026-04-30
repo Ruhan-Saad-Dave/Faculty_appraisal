@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import date
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.conference_paper import (
     ConferencePaperCreate,
     ConferencePaperUpdateFaculty,
@@ -16,24 +18,34 @@ from ....models.Part_B.conference_paper import ConferencePaper as DBConferencePa
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    # This is a mock user for demonstration. Replace with actual authentication.
-    return User(id=1, roles=["faculty"]) # Default to faculty for now
-
 @router.post("/conference-papers", response_model=ConferencePaperResponse, status_code=status.HTTP_201_CREATED)
-def create_conference_paper(
-    paper: ConferencePaperCreate,
+async def create_conference_paper(
+    event_title: str = Form(...),
+    event_date: date = Form(...),
+    activity_type: str = Form(...),
+    hosting_organization: str = Form(...),
+    event_level: str = Form(...),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create conference papers")
+    
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    paper = ConferencePaperCreate(
+        event_title=event_title,
+        event_date=event_date,
+        activity_type=activity_type,
+        hosting_organization=hosting_organization,
+        event_level=event_level,
+        department=department,
+        document=document_path
+    )
     
     return crud_conference_paper.create_conference_paper(db=db, paper=paper, faculty_id=current_user.id)
 

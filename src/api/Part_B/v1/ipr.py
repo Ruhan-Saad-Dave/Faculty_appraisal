@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import date
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.ipr import (
     IPRCreate,
     IPRUpdateFaculty,
@@ -16,24 +18,34 @@ from ....models.Part_B.ipr import IPR as DBIPR
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    # This is a mock user for demonstration. Replace with actual authentication.
-    return User(id=1, roles=["faculty"]) # Default to faculty for now
-
 @router.post("/ipr", response_model=IPRResponse, status_code=status.HTTP_201_CREATED)
-def create_ipr(
-    ipr: IPRCreate,
+async def create_ipr(
+    title: str = Form(...),
+    scope: str = Form(...),
+    filing_date: date = Form(...),
+    status: str = Form(...),
+    patent_file_no: str = Form(...),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create IPR entries")
+    
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    ipr = IPRCreate(
+        title=title,
+        scope=scope,
+        filing_date=filing_date,
+        status=status,
+        patent_file_no=patent_file_no,
+        department=department,
+        document=document_path
+    )
     
     return crud_ipr.create_ipr(db=db, ipr=ipr, faculty_id=current_user.id)
 

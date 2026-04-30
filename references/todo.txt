@@ -1,0 +1,16 @@
+--- Part B Migration & Supabase Setup ---
+1. [COMPLETED] Implement Supabase migration and PDF upload support for all Part B categories.
+2. [TODO] Update `.env` with Supabase `DATABASE_URL`, `SUPABASE_URL`, and `SUPABASE_ANON_KEY`.
+3. [TODO] Create a private storage bucket named `faculty-docs` in the Supabase Dashboard.
+4. [TODO] Run the backend server to ensure SQLAlchemy creates/updates tables in the Supabase Postgres instance.
+5. [TODO] Verify Part B endpoints (POST/GET) using FastAPI Swagger UI (`/docs`).
+
+--- Part A Implementation ---
+6. [TODO] Implement SQLAlchemy models for all Part A categories (Teaching Process, Course File, etc.).
+7. [TODO] Implement Pydantic schemas and CRUD operations for Part A.
+8. [TODO] Create FastAPI routers for Part A with role-based access control.
+
+--- Overall Appraisal & Finalization ---
+9. [TODO] Implement Appraisal Summary API (aggregating Part A and Part B scores).
+10. [TODO] Implement Remarks by Authorities (HOD, Director, Dean, VC) and Approval workflow.
+11. [TODO] Integrate real authentication (Supabase Auth) and refine role-based logic.

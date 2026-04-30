@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import date
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.research_project import (
     ResearchProjectCreate,
     ResearchProjectUpdateFaculty,
@@ -12,28 +14,39 @@ from ....schema.Part_B.research_project import (
     ResearchProjectSummary,
 )
 from ....crud.Part_B import research_project as crud_research_project
-from ....models.Part_B.research_project import ResearchProject as DBResearchProject
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    # This is a mock user for demonstration. Replace with actual authentication.
-    return User(id=1, roles=["faculty"]) # Default to faculty for now
-
 @router.post("/research-projects", response_model=ResearchProjectResponse, status_code=status.HTTP_201_CREATED)
-def create_research_project(
-    project: ResearchProjectCreate,
+async def create_research_project(
+    project_name: str = Form(...),
+    funding_agency: str = Form(...),
+    date_of_sanction: date = Form(...),
+    funding_amount: float = Form(...),
+    role: str = Form(...),
+    project_status: str = Form(...),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create research projects")
+    
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    project = ResearchProjectCreate(
+        project_name=project_name,
+        funding_agency=funding_agency,
+        date_of_sanction=date_of_sanction,
+        funding_amount=funding_amount,
+        role=role,
+        project_status=project_status,
+        department=department,
+        document=document_path
+    )
     
     return crud_research_project.create_research_project(db=db, project=project, faculty_id=current_user.id)
 

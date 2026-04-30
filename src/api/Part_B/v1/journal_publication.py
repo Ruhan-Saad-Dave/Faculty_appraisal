@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.journal_publication import (
     JournalPublicationCreate,
     JournalPublicationUpdateFaculty,
@@ -11,37 +12,40 @@ from ....schema.Part_B.journal_publication import (
     JournalPublicationResponse,
     JournalPublicationSummary,
 )
+from ....models.Part_B.journal_publication import IndexingEnum
 from ....crud.Part_B import journal_publication as crud_journal_publication
-from ....models.Part_B.journal_publication import JournalPublication as DBJournalPublication
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-# In a real application, this would involve actual user authentication and role checking
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    # This is a mock user for demonstration. Replace with actual authentication.
-    # For testing different roles, you can modify this.
-    # Example: return User(id=1, roles=["faculty"])
-    # Example: return User(id=2, roles=["admin"])
-    # Example: return User(id=3, roles=["hod"])
-    # Example: return User(id=4, roles=["director"])
-    return User(id=1, roles=["faculty"]) # Default to faculty for now
-
 @router.post("/journal-publications", response_model=JournalPublicationResponse, status_code=status.HTTP_201_CREATED)
-def create_journal_publication(
-    publication: JournalPublicationCreate,
+async def create_journal_publication(
+    sr_no: Optional[int] = Form(None),
+    title_with_page_nos: Optional[str] = Form(None),
+    journal_details: Optional[str] = Form(None),
+    issn_isbn_no: Optional[str] = Form(None),
+    indexing: Optional[IndexingEnum] = Form(None),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create journal publications")
     
-    # Assuming the faculty_id for creation comes from the authenticated user
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    publication = JournalPublicationCreate(
+        sr_no=sr_no,
+        title_with_page_nos=title_with_page_nos,
+        journal_details=journal_details,
+        issn_isbn_no=issn_isbn_no,
+        indexing=indexing,
+        department=department,
+        document=document_path
+    )
+    
     return crud_journal_publication.create_journal_publication(db=db, publication=publication, faculty_id=current_user.id)
 
 @router.get("/journal-publications/faculty/{faculty_id}", response_model=List[JournalPublicationResponse])
