@@ -9,13 +9,13 @@ from ...schema.Part_A.student_feedback import (
     StudentFeedbackUpdateDirector,
 )
 
-def get_student_feedback(db: Session, id: int) -> Optional[StudentFeedback]:
+def get_student_feedback(db: Session, id: str) -> Optional[StudentFeedback]:
     return db.query(StudentFeedback).filter(StudentFeedback.id == id).first()
 
-def get_student_feedback_by_faculty(db: Session, faculty_id: int) -> List[StudentFeedback]:
+def get_student_feedback_by_faculty(db: Session, faculty_id: str) -> List[StudentFeedback]:
     return db.query(StudentFeedback).filter(StudentFeedback.faculty_id == faculty_id).all()
 
-def create_student_feedback(db: Session, feedback: StudentFeedbackCreate, faculty_id: int) -> StudentFeedback:
+def create_student_feedback(db: Session, feedback: StudentFeedbackCreate, faculty_id: str) -> StudentFeedback:
     db_feedback = StudentFeedback(**feedback.model_dump(), faculty_id=faculty_id)
     db.add(db_feedback)
     db.commit()
@@ -23,7 +23,7 @@ def create_student_feedback(db: Session, feedback: StudentFeedbackCreate, facult
     return db_feedback
 
 def update_student_feedback_faculty(
-    db: Session, id: int, feedback_update: StudentFeedbackUpdateFaculty
+    db: Session, id: str, feedback_update: StudentFeedbackUpdateFaculty
 ) -> Optional[StudentFeedback]:
     db_feedback = get_student_feedback(db, id)
     if db_feedback:
@@ -35,7 +35,7 @@ def update_student_feedback_faculty(
     return db_feedback
 
 def update_student_feedback_hod(
-    db: Session, id: int, feedback_update: StudentFeedbackUpdateHOD
+    db: Session, id: str, feedback_update: StudentFeedbackUpdateHOD
 ) -> Optional[StudentFeedback]:
     db_feedback = get_student_feedback(db, id)
     if db_feedback:
@@ -45,7 +45,7 @@ def update_student_feedback_hod(
     return db_feedback
 
 def update_student_feedback_director(
-    db: Session, id: int, feedback_update: StudentFeedbackUpdateDirector
+    db: Session, id: str, feedback_update: StudentFeedbackUpdateDirector
 ) -> Optional[StudentFeedback]:
     db_feedback = get_student_feedback(db, id)
     if db_feedback:
@@ -54,7 +54,7 @@ def update_student_feedback_director(
         db.refresh(db_feedback)
     return db_feedback
 
-def delete_student_feedback(db: Session, id: int) -> bool:
+def delete_student_feedback(db: Session, id: str) -> bool:
     db_feedback = get_student_feedback(db, id)
     if db_feedback:
         db.delete(db_feedback)
@@ -62,6 +62,6 @@ def delete_student_feedback(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_student_feedback_total_score(db: Session, faculty_id: int) -> float:
+def get_student_feedback_total_score(db: Session, faculty_id: str) -> float:
     entries = get_student_feedback_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

@@ -4,20 +4,23 @@ from typing import Optional
 class ACRBase(BaseModel):
     sr_no: Optional[int] = None
     subject: str = Field(..., max_length=255)
+    department: Optional[str] = None
+    document: Optional[str] = None
 
 class ACRCreate(ACRBase):
-    faculty_id: int
+    faculty_id: str
 
 class ACRUpdateHOD(BaseModel):
     api_score_hod: float
+    department: Optional[str] = None
 
 class ACRUpdateDirector(BaseModel):
     api_score_director: float
     signature: Optional[bool] = None
 
 class ACRResponse(ACRBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     api_score_hod: float
     api_score_director: float
     signature: bool

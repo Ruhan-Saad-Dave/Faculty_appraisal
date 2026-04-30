@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form, Path
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional, Annotated
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, CurrentUser
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_A.teaching_methods import (
     TeachingMethodsCreate,
     TeachingMethodsUpdateFaculty,
@@ -13,30 +14,37 @@ from ....crud.Part_A import teaching_methods as crud_teaching_methods
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    return User(id=1, roles=["faculty"])
-
 @router.post("/teaching-methods", response_model=TeachingMethodsResponse, status_code=status.HTTP_201_CREATED)
-def create_teaching_methods(
-    methods: TeachingMethodsCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+async def create_teaching_methods(
+    current_user: CurrentUser,
+    sr_no: Optional[int] = Form(None),
+    short_description: str = Form(...),
+    details_proof: bool = Form(False),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only faculty can create entries")
-    return crud_teaching_methods.create_teaching_methods(db, methods, current_user.id)
+    
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    methods_data = TeachingMethodsCreate(
+        sr_no=sr_no,
+        short_description=short_description,
+        details_proof=details_proof,
+        department=department,
+        document=document_path
+    )
+    return crud_teaching_methods.create_teaching_methods(db, methods_data, current_user.id)
 
 @router.get("/teaching-methods/faculty/{faculty_id}", response_model=List[TeachingMethodsResponse])
 def read_teaching_methods_by_faculty(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
@@ -44,8 +52,8 @@ def read_teaching_methods_by_faculty(
 
 @router.get("/teaching-methods", response_model=List[TeachingMethodsResponse])
 def read_all_teaching_methods(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can view all data")
@@ -53,10 +61,10 @@ def read_all_teaching_methods(
 
 @router.put("/teaching-methods/{id}", response_model=TeachingMethodsResponse)
 def update_teaching_methods(
-    id: int,
+    current_user: CurrentUser,
+    id: str,
     methods_update: TeachingMethodsUpdateFaculty,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_entry = crud_teaching_methods.get_teaching_methods(db, id)
     if not db_entry:
@@ -71,11 +79,22 @@ def update_teaching_methods(
 
 @router.delete("/teaching-methods/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_teaching_methods(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can delete entries")
     crud_teaching_methods.delete_teaching_methods(db, id)
     return None
+
+@router.get("/teaching-methods/summary/{faculty_id}")
+def read_teaching_methods_summary(
+    current_user: CurrentUser,
+    faculty_id: Annotated[str, Path()],
+    db: Session = Depends(get_db)
+):
+    if not current_user.has_authority_over(faculty_id, "faculty"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    total_score = crud_teaching_methods.get_teaching_methods_total_score(db, faculty_id)
+    return {"totalScore": total_score}

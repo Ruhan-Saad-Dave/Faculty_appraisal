@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.research_proposal import (
     ResearchProposalCreate,
@@ -18,6 +18,7 @@ router = APIRouter()
 
 @router.post("/research-proposals", response_model=ResearchProposalResponse, status_code=status.HTTP_201_CREATED)
 async def create_research_proposal(
+    current_user: CurrentUser,
     proposal_title: str = Form(...),
     duration: str = Form(...),
     funding_agency: str = Form(...),
@@ -25,7 +26,6 @@ async def create_research_proposal(
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create research proposals")
@@ -47,11 +47,11 @@ async def create_research_proposal(
 
 @router.get("/research-proposals/faculty/{faculty_id}", response_model=List[ResearchProposalResponse])
 def read_research_proposals_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's research proposals")
@@ -61,10 +61,10 @@ def read_research_proposals_by_faculty(
 
 @router.get("/research-proposals", response_model=List[ResearchProposalResponse])
 def read_all_research_proposals(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all research proposals")
@@ -74,10 +74,10 @@ def read_all_research_proposals(
 
 @router.put("/research-proposals/{proposal_id}", response_model=ResearchProposalResponse)
 def update_research_proposal(
-    proposal_id: int,
+    current_user: CurrentUser,
+    proposal_id: str,
     proposal_update: ResearchProposalUpdateFaculty, # Default to faculty update schema
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     db_proposal = crud_research_proposal.get_research_proposal(db, proposal_id)
     if db_proposal is None:
@@ -105,9 +105,9 @@ def update_research_proposal(
 
 @router.delete("/research-proposals/{proposal_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_research_proposal(
-    proposal_id: int,
+    current_user: CurrentUser,
+    proposal_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     db_proposal = crud_research_proposal.get_research_proposal(db, proposal_id)
     if db_proposal is None:
@@ -121,9 +121,9 @@ def delete_research_proposal(
 
 @router.get("/research-proposals/summary/{faculty_id}", response_model=ResearchProposalSummary)
 def get_research_proposals_summary(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

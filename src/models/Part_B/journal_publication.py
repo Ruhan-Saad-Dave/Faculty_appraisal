@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Text, Double, ForeignKey, Enum
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from src.setup.database import Base
+import uuid
 import enum
+from src.setup.database import Base
 
 class IndexingEnum(str, enum.Enum):
     SCOPUS = "Scopus"
@@ -10,10 +12,10 @@ class IndexingEnum(str, enum.Enum):
     UGC = "UGC"
 
 class JournalPublication(Base):
-    __tablename__ = "journal_publications"
+    __tablename__ = "published_papers"
 
-    id = Column(Integer, primary_key=True, index=True)
-    faculty_id = Column(Integer, ForeignKey("faculty.id")) # Assuming a faculty table exists
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id")) 
 
     sr_no = Column(Integer, index=True)
     title_with_page_nos = Column(Text)

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, CurrentUser
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_A.industry_connect import (
     IndustryConnectCreate,
     IndustryConnectUpdateFaculty,
@@ -14,30 +15,37 @@ from ....crud.Part_A import industry_connect as crud_activities
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    return User(id=1, roles=["faculty"])
-
 @router.post("/industry-connect", response_model=IndustryConnectResponse, status_code=status.HTTP_201_CREATED)
-def create_activity(
-    connect: IndustryConnectCreate,
+async def create_activity(
+    current_user: CurrentUser,
+    sr_no: Optional[int] = Form(None),
+    industry_name: str = Form(...),
+    details_of_activity: str = Form(...),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only faculty can create entries")
-    return crud_activities.create_industry_connect(db, connect, current_user.id)
+    
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    connect_data = IndustryConnectCreate(
+        sr_no=sr_no,
+        industry_name=industry_name,
+        details_of_activity=details_of_activity,
+        department=department,
+        document=document_path
+    )
+    return crud_activities.create_industry_connect(db, connect_data, current_user.id)
 
 @router.get("/industry-connect/faculty/{faculty_id}", response_model=List[IndustryConnectResponse])
 def read_activities_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
@@ -45,8 +53,8 @@ def read_activities_by_faculty(
 
 @router.get("/industry-connect", response_model=List[IndustryConnectResponse])
 def read_all_activities(
+    current_user: CurrentUser,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can view all data")
@@ -54,10 +62,10 @@ def read_all_activities(
 
 @router.put("/industry-connect/{id}", response_model=IndustryConnectResponse)
 def update_activity(
-    id: int,
+    current_user: CurrentUser,
+    id: str,
     connect_update: IndustryConnectUpdateFaculty,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     db_entry = crud_activities.get_industry_connect(db, id)
     if not db_entry:
@@ -74,9 +82,9 @@ def update_activity(
 
 @router.delete("/industry-connect/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_activity(
-    id: int,
+    current_user: CurrentUser,
+    id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can delete entries")
@@ -85,9 +93,9 @@ def delete_activity(
 
 @router.get("/industry-connect/summary/{faculty_id}")
 def get_activity_summary(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")

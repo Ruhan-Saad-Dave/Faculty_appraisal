@@ -8,13 +8,13 @@ from ...schema.Part_A.teaching_methods import (
     TeachingMethodsUpdateHOD,
 )
 
-def get_teaching_methods(db: Session, id: int) -> Optional[TeachingMethods]:
+def get_teaching_methods(db: Session, id: str) -> Optional[TeachingMethods]:
     return db.query(TeachingMethods).filter(TeachingMethods.id == id).first()
 
-def get_teaching_methods_by_faculty(db: Session, faculty_id: int) -> List[TeachingMethods]:
+def get_teaching_methods_by_faculty(db: Session, faculty_id: str) -> List[TeachingMethods]:
     return db.query(TeachingMethods).filter(TeachingMethods.faculty_id == faculty_id).all()
 
-def create_teaching_methods(db: Session, teaching_methods: TeachingMethodsCreate, faculty_id: int) -> TeachingMethods:
+def create_teaching_methods(db: Session, teaching_methods: TeachingMethodsCreate, faculty_id: str) -> TeachingMethods:
     db_teaching_methods = TeachingMethods(**teaching_methods.model_dump(), faculty_id=faculty_id)
     db.add(db_teaching_methods)
     db.commit()
@@ -22,7 +22,7 @@ def create_teaching_methods(db: Session, teaching_methods: TeachingMethodsCreate
     return db_teaching_methods
 
 def update_teaching_methods_faculty(
-    db: Session, id: int, teaching_methods_update: TeachingMethodsUpdateFaculty
+    db: Session, id: str, teaching_methods_update: TeachingMethodsUpdateFaculty
 ) -> Optional[TeachingMethods]:
     db_teaching_methods = get_teaching_methods(db, id)
     if db_teaching_methods:
@@ -34,7 +34,7 @@ def update_teaching_methods_faculty(
     return db_teaching_methods
 
 def update_teaching_methods_hod(
-    db: Session, id: int, teaching_methods_update: TeachingMethodsUpdateHOD
+    db: Session, id: str, teaching_methods_update: TeachingMethodsUpdateHOD
 ) -> Optional[TeachingMethods]:
     db_teaching_methods = get_teaching_methods(db, id)
     if db_teaching_methods:
@@ -45,7 +45,7 @@ def update_teaching_methods_hod(
         db.refresh(db_teaching_methods)
     return db_teaching_methods
 
-def delete_teaching_methods(db: Session, id: int) -> bool:
+def delete_teaching_methods(db: Session, id: str) -> bool:
     db_teaching_methods = get_teaching_methods(db, id)
     if db_teaching_methods:
         db.delete(db_teaching_methods)
@@ -53,6 +53,6 @@ def delete_teaching_methods(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_teaching_methods_total_score(db: Session, faculty_id: int) -> float:
+def get_teaching_methods_total_score(db: Session, faculty_id: str) -> float:
     entries = get_teaching_methods_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

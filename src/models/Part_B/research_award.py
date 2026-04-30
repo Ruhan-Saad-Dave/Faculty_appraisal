@@ -1,13 +1,14 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, Enum, Double, Date
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+import uuid
 from src.setup.database import Base
-from src.models.Part_B.faculty import Faculty  # Import Faculty model for relationship
 
 class ResearchAward(Base):
     __tablename__ = "research_awards"
 
-    id = Column(Integer, primary_key=True, index=True)
-    faculty_id = Column(Integer, ForeignKey("faculty.id"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
     award_name = Column(Text, nullable=False)
     award_date = Column(Date, nullable=False)
     awarding_agency = Column(String(255), nullable=False)

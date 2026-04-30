@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, CurrentUser
+from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_A.student_feedback import (
     StudentFeedbackCreate,
     StudentFeedbackUpdateFaculty,
@@ -14,30 +15,39 @@ from ....crud.Part_A import student_feedback as crud_student_feedback
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    return User(id=1, roles=["faculty"])
-
 @router.post("/student-feedback", response_model=StudentFeedbackResponse, status_code=status.HTTP_201_CREATED)
-def create_feedback(
-    feedback: StudentFeedbackCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+async def create_feedback(
+    current_user: CurrentUser,
+    sr_no: Optional[int] = Form(None),
+    course_code_name: str = Form(...),
+    first_feedback: float = Form(...),
+    second_feedback: float = Form(...),
+    department: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only faculty can create entries")
-    return crud_student_feedback.create_student_feedback(db, feedback, current_user.id)
+    
+    document_path = None
+    if file:
+        document_path = await upload_file_to_supabase(file, current_user.id)
+    
+    feedback_data = StudentFeedbackCreate(
+        sr_no=sr_no,
+        course_code_name=course_code_name,
+        first_feedback=first_feedback,
+        second_feedback=second_feedback,
+        department=department,
+        document=document_path
+    )
+    return crud_student_feedback.create_student_feedback(db, feedback_data, current_user.id)
 
 @router.get("/student-feedback/faculty/{faculty_id}", response_model=List[StudentFeedbackResponse])
 def read_feedback_by_faculty(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
@@ -45,8 +55,8 @@ def read_feedback_by_faculty(
 
 @router.get("/student-feedback", response_model=List[StudentFeedbackResponse])
 def read_all_feedback(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can view all data")
@@ -54,10 +64,10 @@ def read_all_feedback(
 
 @router.put("/student-feedback/{id}", response_model=StudentFeedbackResponse)
 def update_feedback(
-    id: int,
+    current_user: CurrentUser,
+    id: str,
     feedback_update: StudentFeedbackUpdateFaculty,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_entry = crud_student_feedback.get_student_feedback(db, id)
     if not db_entry:
@@ -74,9 +84,9 @@ def update_feedback(
 
 @router.delete("/student-feedback/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_feedback(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can delete entries")
@@ -85,9 +95,9 @@ def delete_feedback(
 
 @router.get("/student-feedback/summary/{faculty_id}")
 def get_feedback_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")

@@ -9,16 +9,16 @@ from src.schema.Part_B.research_guidance import (
     ResearchGuidanceUpdateDirector,
 )
 
-def get_research_guidance(db: Session, guidance_id: int) -> Optional[ResearchGuidance]:
+def get_research_guidance(db: Session, guidance_id: str) -> Optional[ResearchGuidance]:
     return db.query(ResearchGuidance).filter(ResearchGuidance.id == guidance_id).first()
 
-def get_research_guidance_by_faculty(db: Session, faculty_id: int, skip: int = 0, limit: int = 100) -> List[ResearchGuidance]:
+def get_research_guidance_by_faculty(db: Session, faculty_id: str, skip: int = 0, limit: int = 100) -> List[ResearchGuidance]:
     return db.query(ResearchGuidance).filter(ResearchGuidance.faculty_id == faculty_id).offset(skip).limit(limit).all()
 
 def get_all_research_guidance(db: Session, skip: int = 0, limit: int = 100) -> List[ResearchGuidance]:
     return db.query(ResearchGuidance).offset(skip).limit(limit).all()
 
-def create_research_guidance(db: Session, guidance: ResearchGuidanceCreate, faculty_id: int) -> ResearchGuidance:
+def create_research_guidance(db: Session, guidance: ResearchGuidanceCreate, faculty_id: str) -> ResearchGuidance:
     db_guidance = ResearchGuidance(**guidance.model_dump(), faculty_id=faculty_id)
     db.add(db_guidance)
     db.commit()
@@ -26,7 +26,7 @@ def create_research_guidance(db: Session, guidance: ResearchGuidanceCreate, facu
     return db_guidance
 
 def update_research_guidance_faculty(
-    db: Session, guidance_id: int, guidance_update: ResearchGuidanceUpdateFaculty
+    db: Session, guidance_id: str, guidance_update: ResearchGuidanceUpdateFaculty
 ) -> Optional[ResearchGuidance]:
     db_guidance = db.query(ResearchGuidance).filter(ResearchGuidance.id == guidance_id).first()
     if db_guidance:
@@ -38,7 +38,7 @@ def update_research_guidance_faculty(
     return db_guidance
 
 def update_research_guidance_hod(
-    db: Session, guidance_id: int, guidance_update: ResearchGuidanceUpdateHOD
+    db: Session, guidance_id: str, guidance_update: ResearchGuidanceUpdateHOD
 ) -> Optional[ResearchGuidance]:
     db_guidance = db.query(ResearchGuidance).filter(ResearchGuidance.id == guidance_id).first()
     if db_guidance:
@@ -48,7 +48,7 @@ def update_research_guidance_hod(
     return db_guidance
 
 def update_research_guidance_director(
-    db: Session, guidance_id: int, guidance_update: ResearchGuidanceUpdateDirector
+    db: Session, guidance_id: str, guidance_update: ResearchGuidanceUpdateDirector
 ) -> Optional[ResearchGuidance]:
     db_guidance = db.query(ResearchGuidance).filter(ResearchGuidance.id == guidance_id).first()
     if db_guidance:
@@ -57,14 +57,14 @@ def update_research_guidance_director(
         db.refresh(db_guidance)
     return db_guidance
 
-def delete_research_guidance(db: Session, guidance_id: int) -> Optional[ResearchGuidance]:
+def delete_research_guidance(db: Session, guidance_id: str) -> Optional[ResearchGuidance]:
     db_guidance = db.query(ResearchGuidance).filter(ResearchGuidance.id == guidance_id).first()
     if db_guidance:
         db.delete(db_guidance)
         db.commit()
     return db_guidance
 
-def get_research_guidance_total_score(db: Session, faculty_id: int) -> dict:
+def get_research_guidance_total_score(db: Session, faculty_id: str) -> dict:
     guidance_entries = db.query(ResearchGuidance).filter(ResearchGuidance.faculty_id == faculty_id).all()
     total_score = sum([entry.api_score_faculty for entry in guidance_entries])
     

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.ict_pedagogy import (
     ICTPedagogyCreate,
@@ -17,16 +17,16 @@ from ....models.Part_B.ict_pedagogy import ICTPedagogy as DBICTPedagogy
 
 router = APIRouter()
 
-@router.post("/ict-pedagogies", response_model=ICTPedagogyResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/pedagogy", response_model=ICTPedagogyResponse, status_code=status.HTTP_201_CREATED)
 async def create_ict_pedagogy(
+    current_user: CurrentUser,
     title: str = Form(...),
     description: str = Form(...),
     pedagogy_type: str = Form(...),
     quadrants: int = Form(...),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create ICT pedagogies")
@@ -46,13 +46,13 @@ async def create_ict_pedagogy(
     
     return crud_ict_pedagogy.create_ict_pedagogy(db=db, pedagogy=pedagogy, faculty_id=current_user.id)
 
-@router.get("/ict-pedagogies/faculty/{faculty_id}", response_model=List[ICTPedagogyResponse])
+@router.get("/pedagogy/faculty/{faculty_id}", response_model=List[ICTPedagogyResponse])
 def read_ict_pedagogies_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's ICT pedagogies")
@@ -60,12 +60,12 @@ def read_ict_pedagogies_by_faculty(
     pedagogies = crud_ict_pedagogy.get_ict_pedagogies_by_faculty(db, faculty_id=faculty_id, skip=skip, limit=limit)
     return pedagogies
 
-@router.get("/ict-pedagogies", response_model=List[ICTPedagogyResponse])
+@router.get("/pedagogy", response_model=List[ICTPedagogyResponse])
 def read_all_ict_pedagogies(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all ICT pedagogies")
@@ -73,12 +73,12 @@ def read_all_ict_pedagogies(
     pedagogies = crud_ict_pedagogy.get_all_ict_pedagogies(db, skip=skip, limit=limit)
     return pedagogies
 
-@router.put("/ict-pedagogies/{pedagogy_id}", response_model=ICTPedagogyResponse)
+@router.put("/pedagogy/{pedagogy_id}", response_model=ICTPedagogyResponse)
 def update_ict_pedagogy(
-    pedagogy_id: int,
+    current_user: CurrentUser,
+    pedagogy_id: str,
     pedagogy_update: ICTPedagogyUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_pedagogy = crud_ict_pedagogy.get_ict_pedagogy(db, pedagogy_id)
     if db_pedagogy is None:
@@ -104,11 +104,11 @@ def update_ict_pedagogy(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update ICT pedagogy entry")
     return updated_pedagogy
 
-@router.delete("/ict-pedagogies/{pedagogy_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/pedagogy/{pedagogy_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_ict_pedagogy(
-    pedagogy_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    pedagogy_id: str,
+    db: Session = Depends(get_db)
 ):
     db_pedagogy = crud_ict_pedagogy.get_ict_pedagogy(db, pedagogy_id)
     if db_pedagogy is None:
@@ -120,11 +120,11 @@ def delete_ict_pedagogy(
     crud_ict_pedagogy.delete_ict_pedagogy(db, pedagogy_id)
     return {"message": "ICT Pedagogy entry deleted successfully"}
 
-@router.get("/ict-pedagogies/summary/{faculty_id}", response_model=ICTPedagogySummary)
+@router.get("/pedagogy/summary/{faculty_id}", response_model=ICTPedagogySummary)
 def get_ict_pedagogies_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

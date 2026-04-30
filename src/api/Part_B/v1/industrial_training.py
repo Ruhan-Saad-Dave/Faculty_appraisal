@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.industrial_training import (
     IndustrialTrainingCreate,
@@ -17,15 +17,15 @@ from ....models.Part_B.industrial_training import IndustrialTraining as DBIndust
 
 router = APIRouter()
 
-@router.post("/industrial-trainings", response_model=IndustrialTrainingResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/industrial-training", response_model=IndustrialTrainingResponse, status_code=status.HTTP_201_CREATED)
 async def create_industrial_training(
+    current_user: CurrentUser,
     company_industry: str = Form(...),
     duration_days: int = Form(...),
     nature_of_training: str = Form(...),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create industrial training entries")
@@ -44,13 +44,13 @@ async def create_industrial_training(
     
     return crud_industrial_training.create_industrial_training(db=db, training=training, faculty_id=current_user.id)
 
-@router.get("/industrial-trainings/faculty/{faculty_id}", response_model=List[IndustrialTrainingResponse])
+@router.get("/industrial-training/faculty/{faculty_id}", response_model=List[IndustrialTrainingResponse])
 def read_industrial_trainings_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's industrial training entries")
@@ -58,12 +58,12 @@ def read_industrial_trainings_by_faculty(
     trainings = crud_industrial_training.get_industrial_trainings_by_faculty(db, faculty_id=faculty_id, skip=skip, limit=limit)
     return trainings
 
-@router.get("/industrial-trainings", response_model=List[IndustrialTrainingResponse])
+@router.get("/industrial-training", response_model=List[IndustrialTrainingResponse])
 def read_all_industrial_trainings(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all industrial training entries")
@@ -71,12 +71,12 @@ def read_all_industrial_trainings(
     trainings = crud_industrial_training.get_all_industrial_trainings(db, skip=skip, limit=limit)
     return trainings
 
-@router.put("/industrial-trainings/{training_id}", response_model=IndustrialTrainingResponse)
+@router.put("/industrial-training/{training_id}", response_model=IndustrialTrainingResponse)
 def update_industrial_training(
-    training_id: int,
+    current_user: CurrentUser,
+    training_id: str,
     training_update: IndustrialTrainingUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_training = crud_industrial_training.get_industrial_training(db, training_id)
     if db_training is None:
@@ -102,11 +102,11 @@ def update_industrial_training(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update industrial training entry")
     return updated_training
 
-@router.delete("/industrial-trainings/{training_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/industrial-training/{training_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_industrial_training(
-    training_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    training_id: str,
+    db: Session = Depends(get_db)
 ):
     db_training = crud_industrial_training.get_industrial_training(db, training_id)
     if db_training is None:
@@ -118,11 +118,11 @@ def delete_industrial_training(
     crud_industrial_training.delete_industrial_training(db, training_id)
     return {"message": "Industrial Training entry deleted successfully"}
 
-@router.get("/industrial-trainings/summary/{faculty_id}", response_model=IndustrialTrainingSummary)
+@router.get("/industrial-training/summary/{faculty_id}", response_model=IndustrialTrainingSummary)
 def get_industrial_trainings_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

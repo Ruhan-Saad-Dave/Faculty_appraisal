@@ -32,8 +32,8 @@ class ResearchAwardUpdateDirector(BaseModel):
 
 # Schema for API response
 class ResearchAwardResponse(ResearchAwardBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     research_score_faculty: float
     research_score_hod: float
     research_score_director: float

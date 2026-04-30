@@ -7,6 +7,8 @@ class TeachingProcessBase(BaseModel):
     course_code_name: str = Field(..., max_length=255)
     planned_classes: int
     conducted_classes: int
+    department: Optional[str] = None
+    document: Optional[str] = None
 
 class TeachingProcessCreate(TeachingProcessBase):
     pass
@@ -16,14 +18,15 @@ class TeachingProcessUpdateFaculty(BaseModel):
     course_code_name: Optional[str] = Field(None, max_length=255)
     planned_classes: Optional[int] = None
     conducted_classes: Optional[int] = None
+    department: Optional[str] = None
 
 class TeachingProcessUpdateHOD(BaseModel):
     api_score_hod: float
     signature: Optional[bool] = None
 
 class TeachingProcessResponse(TeachingProcessBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     api_score_faculty: float
     api_score_hod: float
     signature: bool

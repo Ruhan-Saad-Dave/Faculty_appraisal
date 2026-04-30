@@ -32,8 +32,8 @@ class BookPublicationUpdateDirector(BaseModel):
     api_score_director: int = Field(..., description="API score given by Director")
 
 class BookPublicationResponse(BookPublicationBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     api_score_faculty: int
     api_score_hod: int
     api_score_director: int

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from ....setup.dependencies import get_db
+from ....setup.dependencies import get_db, get_current_user, CurrentUser
 from ....schema.Part_A.part_a_summary import PartASummaryResponse
 from ....crud.Part_A import (
     teaching_process,
@@ -20,20 +20,11 @@ from ....crud.Part_A import (
 
 router = APIRouter()
 
-# Placeholder for authentication and authorization
-class User:
-    def __init__(self, id: int, roles: List[str]):
-        self.id = id
-        self.roles = roles
-
-def get_current_user():
-    return User(id=1, roles=["faculty"])
-
 @router.get("/part-a-summary/{faculty_id}", response_model=PartASummaryResponse)
 def get_part_a_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=403, detail="Not authorized")

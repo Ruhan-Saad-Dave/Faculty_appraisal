@@ -15,18 +15,28 @@ from ...crud.Part_B import (
     self_development_fdp as crud_self_development_fdp,
     industrial_training as crud_industrial_training,
 )
+from ...crud.Part_A import (
+    teaching_process as crud_teaching_process,
+    student_feedback as crud_student_feedback,
+    departmental_activities as crud_dept_activity,
+    university_activities as crud_univ_activity,
+    social_contributions as crud_social,
+    industry_connect as crud_industry,
+    acr as crud_acr,
+    course_file as crud_course_file,
+    teaching_methods as crud_teaching_methods,
+    project as crud_project,
+    qualification_enhancement as crud_qualification,
+)
 from ...schema.overall.appraisal_summary import PartBSummary, AppraisalSummaryResponse, PartASummary
 
-def get_appraisal_summary(db: Session, faculty_id: int) -> AppraisalSummaryResponse:
+def get_appraisal_summary(db: Session, faculty_id: str) -> AppraisalSummaryResponse:
     # Part B Scores
     journal_score = crud_journal_publication.get_journal_publications_total_score(db, faculty_id)
     book_score = crud_book_publication.get_book_publications_total_score(db, faculty_id)
     pedagogy_score = crud_ict_pedagogy.get_ict_pedagogies_total_score(db, faculty_id)
-    
-    # Research Guidance returns a dict, extract total_score
-    guidance_summary = crud_research_guidance.get_research_guidance_total_score(db, faculty_id)
-    guidance_score = guidance_summary.get("total_score", 0.0)
-
+    guidance_data = crud_research_guidance.get_research_guidance_total_score(db, faculty_id)
+    guidance_score = guidance_data["total_score"]
     project_score = crud_research_project.get_research_projects_total_score(db, faculty_id)
     ipr_score = crud_ipr.get_ipr_total_score(db, faculty_id)
     award_score = crud_research_award.get_research_awards_total_score(db, faculty_id)
@@ -34,12 +44,12 @@ def get_appraisal_summary(db: Session, faculty_id: int) -> AppraisalSummaryRespo
     proposal_score = crud_research_proposal.get_research_proposals_total_score(db, faculty_id)
     product_score = crud_product_development.get_product_developments_total_score(db, faculty_id)
     self_development_score = crud_self_development_fdp.get_self_development_fdp_total_score(db, faculty_id)
-
+    industrial_training_score = crud_industrial_training.get_industrial_trainings_total_score(db, faculty_id)
 
     part_b_total = (
-        journal_score + book_score + pedagogy_score + guidance_score + project_score +
-        ipr_score + award_score + conference_score + proposal_score + product_score +
-        self_development_score
+        journal_score + book_score + pedagogy_score + guidance_score +
+        project_score + ipr_score + award_score + conference_score +
+        proposal_score + product_score + self_development_score + industrial_training_score
     )
 
     part_b_summary = PartBSummary(
@@ -54,22 +64,44 @@ def get_appraisal_summary(db: Session, faculty_id: int) -> AppraisalSummaryRespo
         proposal_score=proposal_score,
         product_score=product_score,
         self_development_score=self_development_score,
+        industrial_training_score=industrial_training_score,
         part_b_total=part_b_total,
     )
 
-    # Part A Scores (placeholders for now)
-    part_a_summary = PartASummary(
-        teaching_score=0.0,
-        feedback_score=0.0,
-        dept_score=0.0,
-        university_score=0.0,
-        social_score=0.0,
-        industry_score=0.0,
-        acr_score=0.0,
-        part_a_total=0.0,
+    # Part A Scores
+    # Teaching score is the sum of 5 sub-sections (Total 100 marks)
+    tp_score = crud_teaching_process.get_teaching_process_total_score(db, faculty_id)
+    cf_score = crud_course_file.get_course_file_total_score(db, faculty_id)
+    tm_score = crud_teaching_methods.get_teaching_methods_total_score(db, faculty_id)
+    pj_score = crud_project.get_project_total_score(db, faculty_id)
+    qe_score = crud_qualification.get_qualification_enhancement_total_score(db, faculty_id)
+    
+    teaching_score = tp_score + cf_score + tm_score + pj_score + qe_score
+
+    feedback_score = crud_student_feedback.get_student_feedback_total_score(db, faculty_id)
+    dept_score = crud_dept_activity.get_departmental_activity_total_score(db, faculty_id)
+    university_score = crud_univ_activity.get_university_activity_total_score(db, faculty_id)
+    social_score = crud_social.get_social_contribution_total_score(db, faculty_id)
+    industry_score = crud_industry.get_industry_connect_total_score(db, faculty_id)
+    acr_score = crud_acr.get_acr_total_score(db, faculty_id)
+
+    part_a_total = (
+        teaching_score + feedback_score + dept_score + university_score +
+        social_score + industry_score + acr_score
     )
 
-    grand_total_score = part_a_summary.part_a_total + part_b_total
+    part_a_summary = PartASummary(
+        teaching_score=teaching_score,
+        feedback_score=feedback_score,
+        dept_score=dept_score,
+        university_score=university_score,
+        social_score=social_score,
+        industry_score=industry_score,
+        acr_score=acr_score,
+        part_a_total=part_a_total,
+    )
+
+    grand_total_score = part_a_total + part_b_total
 
     return AppraisalSummaryResponse(
         faculty_id=faculty_id,

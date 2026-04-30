@@ -31,9 +31,9 @@ class ICTPedagogyUpdateDirector(BaseModel):
 
 # Schema for API response
 class ICTPedagogyResponse(ICTPedagogyBase):
-    id: int
-    faculty_id: int
-    api_score_faculty: float
+    id: str
+    faculty_id: str
+    api_score_faculty: int
     api_score_hod: float
     api_score_director: float
 

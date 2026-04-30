@@ -6,6 +6,8 @@ class StudentFeedbackBase(BaseModel):
     course_code_name: str = Field(..., max_length=255)
     first_feedback: float = Field(..., ge=0, le=5)
     second_feedback: float = Field(..., ge=0, le=5)
+    department: Optional[str] = None
+    document: Optional[str] = None
 
 class StudentFeedbackCreate(StudentFeedbackBase):
     pass
@@ -14,6 +16,7 @@ class StudentFeedbackUpdateFaculty(BaseModel):
     course_code_name: Optional[str] = Field(None, max_length=255)
     first_feedback: Optional[float] = Field(None, ge=0, le=5)
     second_feedback: Optional[float] = Field(None, ge=0, le=5)
+    department: Optional[str] = None
 
 class StudentFeedbackUpdateHOD(BaseModel):
     api_score_hod: float
@@ -22,8 +25,8 @@ class StudentFeedbackUpdateDirector(BaseModel):
     api_score_director: float
 
 class StudentFeedbackResponse(StudentFeedbackBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     api_score_faculty: float
     api_score_hod: float
     api_score_director: float

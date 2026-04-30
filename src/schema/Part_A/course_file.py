@@ -6,6 +6,8 @@ class CourseFileBase(BaseModel):
     course_paper: str = Field(..., max_length=255)
     title: str = Field(..., max_length=255)
     details_proof: bool = False
+    department: Optional[str] = None
+    document: Optional[str] = None
 
 class CourseFileCreate(CourseFileBase):
     pass
@@ -14,14 +16,15 @@ class CourseFileUpdateFaculty(BaseModel):
     course_paper: Optional[str] = Field(None, max_length=255)
     title: Optional[str] = Field(None, max_length=255)
     details_proof: Optional[bool] = None
+    department: Optional[str] = None
 
 class CourseFileUpdateHOD(BaseModel):
     api_score_hod: float
     signature: Optional[bool] = None
 
 class CourseFileResponse(CourseFileBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     api_score_faculty: float
     api_score_hod: float
     signature: bool

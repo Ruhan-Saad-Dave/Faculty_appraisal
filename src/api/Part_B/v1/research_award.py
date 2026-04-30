@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.research_award import (
     ResearchAwardCreate,
@@ -19,14 +19,14 @@ router = APIRouter()
 
 @router.post("/research-awards", response_model=ResearchAwardResponse, status_code=status.HTTP_201_CREATED)
 async def create_research_award(
+    current_user: CurrentUser,
     award_name: str = Form(...),
     award_date: date = Form(...),
     awarding_agency: str = Form(...),
     level: str = Form(...),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create research awards")
@@ -48,11 +48,11 @@ async def create_research_award(
 
 @router.get("/research-awards/faculty/{faculty_id}", response_model=List[ResearchAwardResponse])
 def read_research_awards_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's research awards")
@@ -62,10 +62,10 @@ def read_research_awards_by_faculty(
 
 @router.get("/research-awards", response_model=List[ResearchAwardResponse])
 def read_all_research_awards(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all research awards")
@@ -75,10 +75,10 @@ def read_all_research_awards(
 
 @router.put("/research-awards/{award_id}", response_model=ResearchAwardResponse)
 def update_research_award(
-    award_id: int,
+    current_user: CurrentUser,
+    award_id: str,
     award_update: ResearchAwardUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_award = crud_research_award.get_research_award(db, award_id)
     if db_award is None:
@@ -106,9 +106,9 @@ def update_research_award(
 
 @router.delete("/research-awards/{award_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_research_award(
-    award_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    award_id: str,
+    db: Session = Depends(get_db)
 ):
     db_award = crud_research_award.get_research_award(db, award_id)
     if db_award is None:
@@ -122,9 +122,9 @@ def delete_research_award(
 
 @router.get("/research-awards/summary/{faculty_id}", response_model=ResearchAwardSummary)
 def get_research_awards_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

@@ -9,14 +9,14 @@ from ...schema.Part_A.qualification_enhancement import (
     QualificationEnhancementUpdateDirector,
 )
 
-def get_qualification_enhancement(db: Session, id: int) -> Optional[QualificationEnhancement]:
+def get_qualification_enhancement(db: Session, id: str) -> Optional[QualificationEnhancement]:
     return db.query(QualificationEnhancement).filter(QualificationEnhancement.id == id).first()
 
-def get_qualification_enhancements_by_faculty(db: Session, faculty_id: int) -> List[QualificationEnhancement]:
+def get_qualification_enhancements_by_faculty(db: Session, faculty_id: str) -> List[QualificationEnhancement]:
     return db.query(QualificationEnhancement).filter(QualificationEnhancement.faculty_id == faculty_id).all()
 
 def create_qualification_enhancement(
-    db: Session, qualification: QualificationEnhancementCreate, faculty_id: int
+    db: Session, qualification: QualificationEnhancementCreate, faculty_id: str
 ) -> QualificationEnhancement:
     db_qualification = QualificationEnhancement(**qualification.model_dump(), faculty_id=faculty_id)
     db.add(db_qualification)
@@ -25,7 +25,7 @@ def create_qualification_enhancement(
     return db_qualification
 
 def update_qualification_enhancement_faculty(
-    db: Session, id: int, qualification_update: QualificationEnhancementUpdateFaculty
+    db: Session, id: str, qualification_update: QualificationEnhancementUpdateFaculty
 ) -> Optional[QualificationEnhancement]:
     db_qualification = get_qualification_enhancement(db, id)
     if db_qualification:
@@ -37,7 +37,7 @@ def update_qualification_enhancement_faculty(
     return db_qualification
 
 def update_qualification_enhancement_hod(
-    db: Session, id: int, qualification_update: QualificationEnhancementUpdateHOD
+    db: Session, id: str, qualification_update: QualificationEnhancementUpdateHOD
 ) -> Optional[QualificationEnhancement]:
     db_qualification = get_qualification_enhancement(db, id)
     if db_qualification:
@@ -47,7 +47,7 @@ def update_qualification_enhancement_hod(
     return db_qualification
 
 def update_qualification_enhancement_director(
-    db: Session, id: int, qualification_update: QualificationEnhancementUpdateDirector
+    db: Session, id: str, qualification_update: QualificationEnhancementUpdateDirector
 ) -> Optional[QualificationEnhancement]:
     db_qualification = get_qualification_enhancement(db, id)
     if db_qualification:
@@ -56,7 +56,7 @@ def update_qualification_enhancement_director(
         db.refresh(db_qualification)
     return db_qualification
 
-def delete_qualification_enhancement(db: Session, id: int) -> bool:
+def delete_qualification_enhancement(db: Session, id: str) -> bool:
     db_qualification = get_qualification_enhancement(db, id)
     if db_qualification:
         db.delete(db_qualification)
@@ -64,6 +64,6 @@ def delete_qualification_enhancement(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_qualification_enhancement_total_score(db: Session, faculty_id: int) -> float:
+def get_qualification_enhancement_total_score(db: Session, faculty_id: str) -> float:
     entries = get_qualification_enhancements_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

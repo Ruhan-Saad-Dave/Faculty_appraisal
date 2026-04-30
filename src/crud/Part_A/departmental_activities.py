@@ -9,14 +9,14 @@ from ...schema.Part_A.departmental_activities import (
     DepartmentalActivityUpdateDirector,
 )
 
-def get_departmental_activity(db: Session, id: int) -> Optional[DepartmentalActivity]:
+def get_departmental_activity(db: Session, id: str) -> Optional[DepartmentalActivity]:
     return db.query(DepartmentalActivity).filter(DepartmentalActivity.id == id).first()
 
-def get_departmental_activities_by_faculty(db: Session, faculty_id: int) -> List[DepartmentalActivity]:
+def get_departmental_activities_by_faculty(db: Session, faculty_id: str) -> List[DepartmentalActivity]:
     return db.query(DepartmentalActivity).filter(DepartmentalActivity.faculty_id == faculty_id).all()
 
 def create_departmental_activity(
-    db: Session, activity: DepartmentalActivityCreate, faculty_id: int
+    db: Session, activity: DepartmentalActivityCreate, faculty_id: str
 ) -> DepartmentalActivity:
     db_activity = DepartmentalActivity(**activity.model_dump(), faculty_id=faculty_id)
     db.add(db_activity)
@@ -25,7 +25,7 @@ def create_departmental_activity(
     return db_activity
 
 def update_departmental_activity_faculty(
-    db: Session, id: int, activity_update: DepartmentalActivityUpdateFaculty
+    db: Session, id: str, activity_update: DepartmentalActivityUpdateFaculty
 ) -> Optional[DepartmentalActivity]:
     db_activity = get_departmental_activity(db, id)
     if db_activity:
@@ -37,7 +37,7 @@ def update_departmental_activity_faculty(
     return db_activity
 
 def update_departmental_activity_hod(
-    db: Session, id: int, activity_update: DepartmentalActivityUpdateHOD
+    db: Session, id: str, activity_update: DepartmentalActivityUpdateHOD
 ) -> Optional[DepartmentalActivity]:
     db_activity = get_departmental_activity(db, id)
     if db_activity:
@@ -47,7 +47,7 @@ def update_departmental_activity_hod(
     return db_activity
 
 def update_departmental_activity_director(
-    db: Session, id: int, activity_update: DepartmentalActivityUpdateDirector
+    db: Session, id: str, activity_update: DepartmentalActivityUpdateDirector
 ) -> Optional[DepartmentalActivity]:
     db_activity = get_departmental_activity(db, id)
     if db_activity:
@@ -56,7 +56,7 @@ def update_departmental_activity_director(
         db.refresh(db_activity)
     return db_activity
 
-def delete_departmental_activity(db: Session, id: int) -> bool:
+def delete_departmental_activity(db: Session, id: str) -> bool:
     db_activity = get_departmental_activity(db, id)
     if db_activity:
         db.delete(db_activity)
@@ -64,6 +64,6 @@ def delete_departmental_activity(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_departmental_activity_total_score(db: Session, faculty_id: int) -> float:
+def get_departmental_activity_total_score(db: Session, faculty_id: str) -> float:
     entries = get_departmental_activities_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

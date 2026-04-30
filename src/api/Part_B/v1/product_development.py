@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.product_development import (
     ProductDevelopmentCreate,
@@ -17,14 +17,14 @@ from ....models.Part_B.product_development import ProductDevelopment as DBProduc
 
 router = APIRouter()
 
-@router.post("/product-developments", response_model=ProductDevelopmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/products", response_model=ProductDevelopmentResponse, status_code=status.HTTP_201_CREATED)
 async def create_product_development(
+    current_user: CurrentUser,
     product_description: str = Form(...),
     usage_type: str = Form(...),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create product developments")
@@ -42,13 +42,13 @@ async def create_product_development(
     
     return crud_product_development.create_product_development(db=db, product=product, faculty_id=current_user.id)
 
-@router.get("/product-developments/faculty/{faculty_id}", response_model=List[ProductDevelopmentResponse])
+@router.get("/products/faculty/{faculty_id}", response_model=List[ProductDevelopmentResponse])
 def read_product_developments_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's product developments")
@@ -56,12 +56,12 @@ def read_product_developments_by_faculty(
     products = crud_product_development.get_product_developments_by_faculty(db, faculty_id=faculty_id, skip=skip, limit=limit)
     return products
 
-@router.get("/product-developments", response_model=List[ProductDevelopmentResponse])
+@router.get("/products", response_model=List[ProductDevelopmentResponse])
 def read_all_product_developments(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all product developments")
@@ -69,12 +69,12 @@ def read_all_product_developments(
     products = crud_product_development.get_all_product_developments(db, skip=skip, limit=limit)
     return products
 
-@router.put("/product-developments/{product_id}", response_model=ProductDevelopmentResponse)
+@router.put("/products/{product_id}", response_model=ProductDevelopmentResponse)
 def update_product_development(
-    product_id: int,
+    current_user: CurrentUser,
+    product_id: str,
     product_update: ProductDevelopmentUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_product = crud_product_development.get_product_development(db, product_id)
     if db_product is None:
@@ -100,11 +100,11 @@ def update_product_development(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update product development entry")
     return updated_product
 
-@router.delete("/product-developments/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product_development(
-    product_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    product_id: str,
+    db: Session = Depends(get_db)
 ):
     db_product = crud_product_development.get_product_development(db, product_id)
     if db_product is None:
@@ -116,11 +116,11 @@ def delete_product_development(
     crud_product_development.delete_product_development(db, product_id)
     return {"message": "Product Development entry deleted successfully"}
 
-@router.get("/product-developments/summary/{faculty_id}", response_model=ProductDevelopmentSummary)
+@router.get("/products/summary/{faculty_id}", response_model=ProductDevelopmentSummary)
 def get_product_developments_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.conference_paper import (
     ConferencePaperCreate,
@@ -18,8 +18,9 @@ from ....models.Part_B.conference_paper import ConferencePaper as DBConferencePa
 
 router = APIRouter()
 
-@router.post("/conference-papers", response_model=ConferencePaperResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/conferences", response_model=ConferencePaperResponse, status_code=status.HTTP_201_CREATED)
 async def create_conference_paper(
+    current_user: CurrentUser,
     event_title: str = Form(...),
     event_date: date = Form(...),
     activity_type: str = Form(...),
@@ -27,8 +28,7 @@ async def create_conference_paper(
     event_level: str = Form(...),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create conference papers")
@@ -49,13 +49,13 @@ async def create_conference_paper(
     
     return crud_conference_paper.create_conference_paper(db=db, paper=paper, faculty_id=current_user.id)
 
-@router.get("/conference-papers/faculty/{faculty_id}", response_model=List[ConferencePaperResponse])
+@router.get("/conferences/faculty/{faculty_id}", response_model=List[ConferencePaperResponse])
 def read_conference_papers_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's conference papers")
@@ -63,12 +63,12 @@ def read_conference_papers_by_faculty(
     papers = crud_conference_paper.get_conference_papers_by_faculty(db, faculty_id=faculty_id, skip=skip, limit=limit)
     return papers
 
-@router.get("/conference-papers", response_model=List[ConferencePaperResponse])
+@router.get("/conferences", response_model=List[ConferencePaperResponse])
 def read_all_conference_papers(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all conference papers")
@@ -76,12 +76,12 @@ def read_all_conference_papers(
     papers = crud_conference_paper.get_all_conference_papers(db, skip=skip, limit=limit)
     return papers
 
-@router.put("/conference-papers/{paper_id}", response_model=ConferencePaperResponse)
+@router.put("/conferences/{paper_id}", response_model=ConferencePaperResponse)
 def update_conference_paper(
-    paper_id: int,
+    current_user: CurrentUser,
+    paper_id: str,
     paper_update: ConferencePaperUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_paper = crud_conference_paper.get_conference_paper(db, paper_id)
     if db_paper is None:
@@ -107,11 +107,11 @@ def update_conference_paper(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update conference paper")
     return updated_paper
 
-@router.delete("/conference-papers/{paper_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/conferences/{paper_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_conference_paper(
-    paper_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    paper_id: str,
+    db: Session = Depends(get_db)
 ):
     db_paper = crud_conference_paper.get_conference_paper(db, paper_id)
     if db_paper is None:
@@ -123,11 +123,11 @@ def delete_conference_paper(
     crud_conference_paper.delete_conference_paper(db, paper_id)
     return {"message": "Conference Paper deleted successfully"}
 
-@router.get("/conference-papers/summary/{faculty_id}", response_model=ConferencePaperSummary)
+@router.get("/conferences/summary/{faculty_id}", response_model=ConferencePaperSummary)
 def get_conference_papers_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

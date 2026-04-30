@@ -5,6 +5,8 @@ class SocialContributionBase(BaseModel):
     sr_no: Optional[int] = None
     activity_type: str = Field(..., max_length=255)
     details_of_activity: str
+    department: Optional[str] = None
+    document: Optional[str] = None
 
 class SocialContributionCreate(SocialContributionBase):
     pass
@@ -13,6 +15,7 @@ class SocialContributionUpdateFaculty(BaseModel):
     activity_type: Optional[str] = Field(None, max_length=255)
     details_of_activity: Optional[str] = None
     api_score_faculty: Optional[float] = None
+    department: Optional[str] = None
 
 class SocialContributionUpdateHOD(BaseModel):
     api_score_hod: float
@@ -21,8 +24,8 @@ class SocialContributionUpdateDirector(BaseModel):
     api_score_director: float
 
 class SocialContributionResponse(SocialContributionBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     api_score_faculty: float
     api_score_hod: float
     api_score_director: float

@@ -23,10 +23,11 @@ class PartBSummary(BaseModel):
     proposal_score: float = 0.0
     product_score: float = 0.0
     self_development_score: float = 0.0
+    industrial_training_score: float = 0.0
     part_b_total: float = 0.0 # out of 375
 
 class AppraisalSummaryResponse(BaseModel):
-    faculty_id: int
+    faculty_id: str
     part_a_summary: PartASummary
     part_b_summary: PartBSummary
     grand_total_score: float = 0.0 # out of 575

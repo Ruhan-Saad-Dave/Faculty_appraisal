@@ -24,9 +24,9 @@ class JournalPublicationUpdateDirector(BaseModel):
     api_score_director: Optional[float] = None
 
 class JournalPublicationResponse(JournalPublicationBase):
-    id: int
-    faculty_id: int
-    api_score_faculty: float
+    id: str
+    faculty_id: str
+    api_score_faculty: int
     api_score_hod: float
     api_score_director: float
 

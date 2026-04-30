@@ -9,16 +9,16 @@ from src.schema.Part_B.product_development import (
     ProductDevelopmentUpdateDirector,
 )
 
-def get_product_development(db: Session, product_id: int) -> Optional[ProductDevelopment]:
+def get_product_development(db: Session, product_id: str) -> Optional[ProductDevelopment]:
     return db.query(ProductDevelopment).filter(ProductDevelopment.id == product_id).first()
 
-def get_product_developments_by_faculty(db: Session, faculty_id: int, skip: int = 0, limit: int = 100) -> List[ProductDevelopment]:
+def get_product_developments_by_faculty(db: Session, faculty_id: str, skip: int = 0, limit: int = 100) -> List[ProductDevelopment]:
     return db.query(ProductDevelopment).filter(ProductDevelopment.faculty_id == faculty_id).offset(skip).limit(limit).all()
 
 def get_all_product_developments(db: Session, skip: int = 0, limit: int = 100) -> List[ProductDevelopment]:
     return db.query(ProductDevelopment).offset(skip).limit(limit).all()
 
-def create_product_development(db: Session, product: ProductDevelopmentCreate, faculty_id: int) -> ProductDevelopment:
+def create_product_development(db: Session, product: ProductDevelopmentCreate, faculty_id: str) -> ProductDevelopment:
     db_product = ProductDevelopment(**product.model_dump(), faculty_id=faculty_id)
     db.add(db_product)
     db.commit()
@@ -26,7 +26,7 @@ def create_product_development(db: Session, product: ProductDevelopmentCreate, f
     return db_product
 
 def update_product_development_faculty(
-    db: Session, product_id: int, product_update: ProductDevelopmentUpdateFaculty
+    db: Session, product_id: str, product_update: ProductDevelopmentUpdateFaculty
 ) -> Optional[ProductDevelopment]:
     db_product = db.query(ProductDevelopment).filter(ProductDevelopment.id == product_id).first()
     if db_product:
@@ -38,7 +38,7 @@ def update_product_development_faculty(
     return db_product
 
 def update_product_development_hod(
-    db: Session, product_id: int, product_update: ProductDevelopmentUpdateHOD
+    db: Session, product_id: str, product_update: ProductDevelopmentUpdateHOD
 ) -> Optional[ProductDevelopment]:
     db_product = db.query(ProductDevelopment).filter(ProductDevelopment.id == product_id).first()
     if db_product:
@@ -48,7 +48,7 @@ def update_product_development_hod(
     return db_product
 
 def update_product_development_director(
-    db: Session, product_id: int, product_update: ProductDevelopmentUpdateDirector
+    db: Session, product_id: str, product_update: ProductDevelopmentUpdateDirector
 ) -> Optional[ProductDevelopment]:
     db_product = db.query(ProductDevelopment).filter(ProductDevelopment.id == product_id).first()
     if db_product:
@@ -57,14 +57,14 @@ def update_product_development_director(
         db.refresh(db_product)
     return db_product
 
-def delete_product_development(db: Session, product_id: int) -> Optional[ProductDevelopment]:
+def delete_product_development(db: Session, product_id: str) -> Optional[ProductDevelopment]:
     db_product = db.query(ProductDevelopment).filter(ProductDevelopment.id == product_id).first()
     if db_product:
         db.delete(db_product)
         db.commit()
     return db_product
 
-def get_product_developments_total_score(db: Session, faculty_id: int) -> float:
+def get_product_developments_total_score(db: Session, faculty_id: str) -> float:
     products = db.query(ProductDevelopment).filter(ProductDevelopment.faculty_id == faculty_id).all()
     total_score = sum([p.api_score_faculty for p in products])
     return total_score

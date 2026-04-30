@@ -8,10 +8,10 @@ from ...schema.Part_A.acr import (
     ACRUpdateDirector,
 )
 
-def get_acr(db: Session, id: int) -> Optional[ACR]:
+def get_acr(db: Session, id: str) -> Optional[ACR]:
     return db.query(ACR).filter(ACR.id == id).first()
 
-def get_acr_by_faculty(db: Session, faculty_id: int) -> List[ACR]:
+def get_acr_by_faculty(db: Session, faculty_id: str) -> List[ACR]:
     return db.query(ACR).filter(ACR.faculty_id == faculty_id).all()
 
 def create_acr(db: Session, acr: ACRCreate) -> ACR:
@@ -22,7 +22,7 @@ def create_acr(db: Session, acr: ACRCreate) -> ACR:
     return db_acr
 
 def update_acr_hod(
-    db: Session, id: int, acr_update: ACRUpdateHOD
+    db: Session, id: str, acr_update: ACRUpdateHOD
 ) -> Optional[ACR]:
     db_acr = get_acr(db, id)
     if db_acr:
@@ -32,7 +32,7 @@ def update_acr_hod(
     return db_acr
 
 def update_acr_director(
-    db: Session, id: int, acr_update: ACRUpdateDirector
+    db: Session, id: str, acr_update: ACRUpdateDirector
 ) -> Optional[ACR]:
     db_acr = get_acr(db, id)
     if db_acr:
@@ -43,7 +43,7 @@ def update_acr_director(
         db.refresh(db_acr)
     return db_acr
 
-def delete_acr(db: Session, id: int) -> bool:
+def delete_acr(db: Session, id: str) -> bool:
     db_acr = get_acr(db, id)
     if db_acr:
         db.delete(db_acr)
@@ -51,7 +51,7 @@ def delete_acr(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_acr_total_score(db: Session, faculty_id: int) -> float:
+def get_acr_total_score(db: Session, faculty_id: str) -> float:
     entries = get_acr_by_faculty(db, faculty_id)
     # Note: ACR usually has score from HOD/Director. 
     # Summary requirement for ACR might need clarification, but I'll return a sum for now.

@@ -1,0 +1,71 @@
+# API Documentation for Frontend Team - Faculty Appraisal System
+
+## 1. Base URL & Authentication
+- **Base URL**: `http://localhost:8000/api` (or your production domain)
+- **Auth Strategy**: Supabase JWT (Bearer Token)
+- **Header**: `Authorization: Bearer <your_supabase_jwt>`
+- **User IDs**: All `faculty_id` and item `id` fields are **UUID strings**.
+
+## 2. Global Rules
+- **Prefix**: Every endpoint starts with `/api`.
+- **Method Mapping**:
+  - `POST`: Create a new entry.
+  - `GET`: Retrieve entry/entries.
+  - `PUT`: Update an existing entry.
+  - `DELETE`: Remove an entry.
+- **Hierarchical Access**:
+  - `Faculty` can only see/edit their own data.
+  - `HoD` can see data of their department and update `api_score_hod`.
+  - `Director`, `Dean`, `VC` have higher levels of visibility and scoring authority.
+
+## 3. Endpoint Reference Table
+
+| Category | Base Endpoint | Summary Endpoint (GET) |
+| :--- | :--- | :--- |
+| **Teaching Process** | `/teaching-process` | `/teaching-process/summary/{id}` |
+| **Course File** | `/course-files` | `/course-files/summary/{id}` |
+| **Teaching Methods** | `/teaching-methods` | `/teaching-methods/summary/{id}` |
+| **Projects** | `/projects` | `/projects/summary/{id}` |
+| **Qualification** | `/qualification-enhancement`| `/qualification-enhancement/summary/{id}` |
+| **Student Feedback** | `/student-feedback` | `/student-feedback/summary/{id}` |
+| **Dept. Activities** | `/department-activities` | `/department-activities/summary/{id}` |
+| **Univ. Activities** | `/university-activities` | `/university-activities/summary/{id}` |
+| **Social Contributions**| `/social-contributions` | `/social-contributions/summary/{id}` |
+| **Industry Connect** | `/industry-connect` | `/industry-connect/summary/{id}` |
+| **ACR** | `/acr` | `/acr/summary/{id}` |
+| **Journal Pubs** | `/journal-publications` | `/journal-publications/summary/{id}` |
+| **Book Pubs** | `/book-publications` | `/book-publications/summary/{id}` |
+| **ICT Pedagogy** | `/pedagogy` | `/pedagogy/summary/{id}` |
+| **Research Guidance** | `/research-guidance` | `/research-guidance/summary/{id}` |
+| **Research Projects** | `/research-projects` | `/research-projects/summary/{id}` |
+| **IPR** | `/ipr` | `/ipr/summary/{id}` |
+| **Research Awards** | `/research-awards` | `/research-awards/summary/{id}` |
+| **Conferences** | `/conferences` | `/conferences/summary/{id}` |
+| **Proposals** | `/research-proposals` | `/research-proposals/summary/{id}` |
+| **Products** | `/products` | `/products/summary/{id}` |
+| **Self Development** | `/self-development` | `/self-development/summary/{id}` |
+| **Industrial Training**| `/industrial-training` | `/industrial-training/summary/{id}` |
+| **Overall Summary** | `/appraisal-summary/{id}` | N/A |
+
+## 4. File Uploads (Proof Documents)
+- **Method**: Use `multipart/form-data` for `POST` and `PUT` requests that require proof.
+- **Field Name**: `file` (accepts `.pdf`).
+- **Response**: The API returns the Supabase Storage path in the `document` field.
+
+## 5. Appraisal Finalization & Remarks
+To be used by authorities for final approval and comments:
+
+- **Enclosures**: `POST /api/enclosures` | `GET /api/enclosures/{faculty_id}`
+- **Declaration**: `POST /api/declaration` | `GET /api/declaration/{faculty_id}`
+- **HOD Update**: `PUT /api/appraisal-remarks/hod/{faculty_id}`
+- **Director Update**: `PUT /api/appraisal-remarks/director/{faculty_id}`
+- **Dean Update**: `PUT /api/appraisal-remarks/dean/{faculty_id}`
+- **VC (Final)**: `PUT /api/appraisal-remarks/final/{faculty_id}`
+
+## 6. Development & Testing
+- **Swagger Docs**: Go to `http://localhost:8000/docs` to see interactive schema and try endpoints.
+- **Error Codes**:
+  - `401`: Token missing or expired.
+  - `403`: Role-based permission denied.
+  - `404`: Entry not found.
+  - `422`: Validation error (check request body fields).

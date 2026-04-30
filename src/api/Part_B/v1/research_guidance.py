@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.research_guidance import (
     ResearchGuidanceCreate,
@@ -19,14 +19,14 @@ router = APIRouter()
 
 @router.post("/research-guidance", response_model=ResearchGuidanceResponse, status_code=status.HTTP_201_CREATED)
 async def create_research_guidance(
+    current_user: CurrentUser,
     degree: str = Form(...),
     student_name: str = Form(...),
     submission_status: str = Form(...),
     award_date: Optional[date] = Form(None),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create research guidance entries")
@@ -48,11 +48,11 @@ async def create_research_guidance(
 
 @router.get("/research-guidance/faculty/{faculty_id}", response_model=List[ResearchGuidanceResponse])
 def read_research_guidance_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's research guidance entries")
@@ -62,10 +62,10 @@ def read_research_guidance_by_faculty(
 
 @router.get("/research-guidance", response_model=List[ResearchGuidanceResponse])
 def read_all_research_guidance(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all research guidance entries")
@@ -75,10 +75,10 @@ def read_all_research_guidance(
 
 @router.put("/research-guidance/{guidance_id}", response_model=ResearchGuidanceResponse)
 def update_research_guidance(
-    guidance_id: int,
+    current_user: CurrentUser,
+    guidance_id: str,
     guidance_update: ResearchGuidanceUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_guidance = crud_research_guidance.get_research_guidance(db, guidance_id)
     if db_guidance is None:
@@ -106,9 +106,9 @@ def update_research_guidance(
 
 @router.delete("/research-guidance/{guidance_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_research_guidance(
-    guidance_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    guidance_id: str,
+    db: Session = Depends(get_db)
 ):
     db_guidance = crud_research_guidance.get_research_guidance(db, guidance_id)
     if db_guidance is None:
@@ -122,9 +122,9 @@ def delete_research_guidance(
 
 @router.get("/research-guidance/summary/{faculty_id}", response_model=ResearchGuidanceSummary)
 def get_research_guidance_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

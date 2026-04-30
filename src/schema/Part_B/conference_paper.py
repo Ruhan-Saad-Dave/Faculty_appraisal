@@ -34,9 +34,9 @@ class ConferencePaperUpdateDirector(BaseModel):
 
 # Schema for API response
 class ConferencePaperResponse(ConferencePaperBase):
-    id: int
-    faculty_id: int
-    research_score_faculty: float
+    id: str
+    faculty_id: str
+    api_score_faculty: int
     research_score_hod: float
     research_score_director: float
 

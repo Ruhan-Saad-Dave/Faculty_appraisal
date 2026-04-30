@@ -1,13 +1,14 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, Enum, Double, Date
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+import uuid
 from src.setup.database import Base
-from src.models.Part_B.faculty import Faculty  # Import Faculty model for relationship
 
 class IPR(Base):
-    __tablename__ = "ipr_entries"
+    __tablename__ = "ipr"
 
-    id = Column(Integer, primary_key=True, index=True)
-    faculty_id = Column(Integer, ForeignKey("faculty.id"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
     title = Column(Text, nullable=False)
     scope = Column(String(20), nullable=False) # National / International
     filing_date = Column(Date, nullable=False)
@@ -16,8 +17,6 @@ class IPR(Base):
     research_score_faculty = Column(Double, default=0.0)
     research_score_hod = Column(Double, default=0.0)
     research_score_director = Column(Double, default=0.0)
-    department = Column(String, nullable=True)
-    document = Column(String, nullable=True)
     department = Column(String, nullable=True)
     document = Column(String, nullable=True)
 

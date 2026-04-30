@@ -9,14 +9,14 @@ from ...schema.Part_A.university_activities import (
     UniversityActivityUpdateDirector,
 )
 
-def get_university_activity(db: Session, id: int) -> Optional[UniversityActivity]:
+def get_university_activity(db: Session, id: str) -> Optional[UniversityActivity]:
     return db.query(UniversityActivity).filter(UniversityActivity.id == id).first()
 
-def get_university_activities_by_faculty(db: Session, faculty_id: int) -> List[UniversityActivity]:
+def get_university_activities_by_faculty(db: Session, faculty_id: str) -> List[UniversityActivity]:
     return db.query(UniversityActivity).filter(UniversityActivity.faculty_id == faculty_id).all()
 
 def create_university_activity(
-    db: Session, activity: UniversityActivityCreate, faculty_id: int
+    db: Session, activity: UniversityActivityCreate, faculty_id: str
 ) -> UniversityActivity:
     db_activity = UniversityActivity(**activity.model_dump(), faculty_id=faculty_id)
     db.add(db_activity)
@@ -25,7 +25,7 @@ def create_university_activity(
     return db_activity
 
 def update_university_activity_faculty(
-    db: Session, id: int, activity_update: UniversityActivityUpdateFaculty
+    db: Session, id: str, activity_update: UniversityActivityUpdateFaculty
 ) -> Optional[UniversityActivity]:
     db_activity = get_university_activity(db, id)
     if db_activity:
@@ -37,7 +37,7 @@ def update_university_activity_faculty(
     return db_activity
 
 def update_university_activity_hod(
-    db: Session, id: int, activity_update: UniversityActivityUpdateHOD
+    db: Session, id: str, activity_update: UniversityActivityUpdateHOD
 ) -> Optional[UniversityActivity]:
     db_activity = get_university_activity(db, id)
     if db_activity:
@@ -47,7 +47,7 @@ def update_university_activity_hod(
     return db_activity
 
 def update_university_activity_director(
-    db: Session, id: int, activity_update: UniversityActivityUpdateDirector
+    db: Session, id: str, activity_update: UniversityActivityUpdateDirector
 ) -> Optional[UniversityActivity]:
     db_activity = get_university_activity(db, id)
     if db_activity:
@@ -56,7 +56,7 @@ def update_university_activity_director(
         db.refresh(db_activity)
     return db_activity
 
-def delete_university_activity(db: Session, id: int) -> bool:
+def delete_university_activity(db: Session, id: str) -> bool:
     db_activity = get_university_activity(db, id)
     if db_activity:
         db.delete(db_activity)
@@ -64,6 +64,6 @@ def delete_university_activity(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_university_activity_total_score(db: Session, faculty_id: int) -> float:
+def get_university_activity_total_score(db: Session, faculty_id: str) -> float:
     entries = get_university_activities_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

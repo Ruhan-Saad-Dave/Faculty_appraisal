@@ -1,13 +1,14 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, Enum, Double, Date
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+import uuid
 from src.setup.database import Base
-from src.models.Part_B.faculty import Faculty  # Import Faculty model for relationship
 
 class ConferencePaper(Base):
-    __tablename__ = "conference_papers"
+    __tablename__ = "academic_events"
 
-    id = Column(Integer, primary_key=True, index=True)
-    faculty_id = Column(Integer, ForeignKey("faculty.id"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
     event_title = Column(Text, nullable=False)
     event_date = Column(Date, nullable=False)
     activity_type = Column(String(50), nullable=False) # Lecture / Resource Person / Paper / Proceedings

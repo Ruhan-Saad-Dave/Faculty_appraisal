@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.research_project import (
     ResearchProjectCreate,
@@ -19,6 +19,7 @@ router = APIRouter()
 
 @router.post("/research-projects", response_model=ResearchProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_research_project(
+    current_user: CurrentUser,
     project_name: str = Form(...),
     funding_agency: str = Form(...),
     date_of_sanction: date = Form(...),
@@ -28,7 +29,6 @@ async def create_research_project(
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create research projects")
@@ -52,11 +52,11 @@ async def create_research_project(
 
 @router.get("/research-projects/faculty/{faculty_id}", response_model=List[ResearchProjectResponse])
 def read_research_projects_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's research projects")
@@ -66,10 +66,10 @@ def read_research_projects_by_faculty(
 
 @router.get("/research-projects", response_model=List[ResearchProjectResponse])
 def read_all_research_projects(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all research projects")
@@ -79,10 +79,10 @@ def read_all_research_projects(
 
 @router.put("/research-projects/{project_id}", response_model=ResearchProjectResponse)
 def update_research_project(
-    project_id: int,
+    current_user: CurrentUser,
+    project_id: str,
     project_update: ResearchProjectUpdateFaculty, # Default to faculty update schema
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     db_project = crud_research_project.get_research_project(db, project_id)
     if db_project is None:
@@ -110,9 +110,9 @@ def update_research_project(
 
 @router.delete("/research-projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_research_project(
-    project_id: int,
+    current_user: CurrentUser,
+    project_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     db_project = crud_research_project.get_research_project(db, project_id)
     if db_project is None:
@@ -126,9 +126,9 @@ def delete_research_project(
 
 @router.get("/research-projects/summary/{faculty_id}", response_model=ResearchProjectSummary)
 def get_research_projects_summary(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

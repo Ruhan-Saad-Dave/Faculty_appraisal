@@ -1,0 +1,372 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.academic_events (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  event_date date,
+  type character varying,
+  organization character varying,
+  level character varying,
+  research_score_faculty double precision,
+  research_score_hod double precision,
+  research_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT academic_events_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.annual_confidential_report (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  subject character varying,
+  api_score_hod double precision,
+  api_score_director double precision,
+  signature boolean,
+  department text,
+  document text,
+  CONSTRAINT annual_confidential_report_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.appraisal_remarks (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  remarks text,
+  department text,
+  document text,
+  CONSTRAINT appraisal_remarks_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_remarks FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.book_publications (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  book_details text,
+  issn_isbn character varying,
+  publisher_type character varying,
+  co_authors_count integer,
+  is_first_author boolean,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT book_publications_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.contribution_to_society (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  activity character varying,
+  details_of_activity text,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT contribution_to_society_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.course_file (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  course_paper character varying,
+  title character varying,
+  details boolean,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  signature boolean,
+  department text,
+  document text,
+  CONSTRAINT course_file_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.dean_remarks (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  dean_remark text,
+  dean_approved_score double precision,
+  dean_signature character varying,
+  department text,
+  document text,
+  CONSTRAINT dean_remarks_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_dean FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.departmental_activities (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  activity character varying,
+  nature_of_activity text,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT departmental_activities_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.director_remarks (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  director_remark text,
+  director_approved_score double precision,
+  director_signature character varying,
+  department text,
+  document text,
+  CONSTRAINT director_remarks_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_director FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.enclosure_declaration (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  designation character varying,
+  place character varying,
+  submission_date date,
+  faculty_signature character varying,
+  department text,
+  document text,
+  CONSTRAINT enclosure_declaration_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_declaration FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.enclosure_text_block (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  enclosure_text text,
+  department text,
+  document text,
+  CONSTRAINT enclosure_text_block_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_text FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.faculty (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name character varying,
+  email character varying UNIQUE,
+  department text,
+  CONSTRAINT faculty_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.final_approval (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  final_score double precision,
+  final_grade character varying,
+  vc_approval boolean,
+  department text,
+  document text,
+  CONSTRAINT final_approval_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_final FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.hod_remarks (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid,
+  hod_remark text,
+  hod_approved_score double precision,
+  hod_signature character varying,
+  department text,
+  document text,
+  CONSTRAINT hod_remarks_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_faculty_hod FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.ict_teaching_content (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title_of_development character varying,
+  short_description text,
+  type character varying,
+  no_of_quadrants integer,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT ict_teaching_content_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.industrial_training (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  company_industry character varying,
+  duration integer,
+  nature_of_training text,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT industrial_training_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.industry_connect_activity (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name_of_industry character varying,
+  details_of_activity text,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT industry_connect_activity_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.innovative_teaching_methods (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  short_description character varying,
+  details boolean,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  signature boolean,
+  department text,
+  document text,
+  CONSTRAINT innovative_teaching_methods_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.ipr (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  scope character varying,
+  date_of_filing date,
+  status character varying,
+  patent_file_no character varying,
+  research_score_faculty double precision,
+  research_score_hod double precision,
+  research_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT ipr_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.products_developed (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  product_details text,
+  usage_type character varying,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT products_developed_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.project (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  project character varying,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT project_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.published_papers (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  journal_details text,
+  issn_isbn character varying,
+  indexing character varying,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT published_papers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.qualification_enhancement (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  qualification character varying,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT qualification_enhancement_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.research_awards (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  date_of_award date,
+  awarding_agency character varying,
+  level character varying,
+  research_score_faculty double precision,
+  research_score_hod double precision,
+  research_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT research_awards_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.research_guidance (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  degree character varying,
+  student_name character varying,
+  thesis_status character varying,
+  thesis_date date,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT research_guidance_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.research_projects (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  funding_agency character varying,
+  date_of_sanction date,
+  grant_amount double precision,
+  role character varying,
+  status character varying,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT research_projects_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.research_proposals (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text,
+  duration character varying,
+  funding_agency character varying,
+  grant_amount double precision,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT research_proposals_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.school (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  college_name character varying NOT NULL,
+  CONSTRAINT school_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.self_development (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  program character varying,
+  duration integer,
+  organized_by character varying,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT self_development_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.student_feedback (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  course_code_name character varying,
+  first_feedback double precision,
+  second_feedback double precision,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT student_feedback_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.teaching_process (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  semester character varying,
+  course_code_name character varying,
+  no_of_classes_planned integer,
+  no_of_classes_conducted integer,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  signature boolean,
+  department text,
+  document text,
+  status USER-DEFINED DEFAULT 'DRAFT'::appraisal_status,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT teaching_process_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.university_activities (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  activity character varying,
+  nature_of_activity text,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department text,
+  document text,
+  CONSTRAINT university_activities_pkey PRIMARY KEY (id)
+);

@@ -9,14 +9,14 @@ from ...schema.Part_A.social_contributions import (
     SocialContributionUpdateDirector,
 )
 
-def get_social_contribution(db: Session, id: int) -> Optional[SocialContribution]:
+def get_social_contribution(db: Session, id: str) -> Optional[SocialContribution]:
     return db.query(SocialContribution).filter(SocialContribution.id == id).first()
 
-def get_social_contributions_by_faculty(db: Session, faculty_id: int) -> List[SocialContribution]:
+def get_social_contributions_by_faculty(db: Session, faculty_id: str) -> List[SocialContribution]:
     return db.query(SocialContribution).filter(SocialContribution.faculty_id == faculty_id).all()
 
 def create_social_contribution(
-    db: Session, contribution: SocialContributionCreate, faculty_id: int
+    db: Session, contribution: SocialContributionCreate, faculty_id: str
 ) -> SocialContribution:
     db_contribution = SocialContribution(**contribution.model_dump(), faculty_id=faculty_id)
     db.add(db_contribution)
@@ -25,7 +25,7 @@ def create_social_contribution(
     return db_contribution
 
 def update_social_contribution_faculty(
-    db: Session, id: int, contribution_update: SocialContributionUpdateFaculty
+    db: Session, id: str, contribution_update: SocialContributionUpdateFaculty
 ) -> Optional[SocialContribution]:
     db_contribution = get_social_contribution(db, id)
     if db_contribution:
@@ -37,7 +37,7 @@ def update_social_contribution_faculty(
     return db_contribution
 
 def update_social_contribution_hod(
-    db: Session, id: int, contribution_update: SocialContributionUpdateHOD
+    db: Session, id: str, contribution_update: SocialContributionUpdateHOD
 ) -> Optional[SocialContribution]:
     db_contribution = get_social_contribution(db, id)
     if db_contribution:
@@ -47,7 +47,7 @@ def update_social_contribution_hod(
     return db_contribution
 
 def update_social_contribution_director(
-    db: Session, id: int, contribution_update: SocialContributionUpdateDirector
+    db: Session, id: str, contribution_update: SocialContributionUpdateDirector
 ) -> Optional[SocialContribution]:
     db_contribution = get_social_contribution(db, id)
     if db_contribution:
@@ -56,7 +56,7 @@ def update_social_contribution_director(
         db.refresh(db_contribution)
     return db_contribution
 
-def delete_social_contribution(db: Session, id: int) -> bool:
+def delete_social_contribution(db: Session, id: str) -> bool:
     db_contribution = get_social_contribution(db, id)
     if db_contribution:
         db.delete(db_contribution)
@@ -64,6 +64,6 @@ def delete_social_contribution(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_social_contribution_total_score(db: Session, faculty_id: int) -> float:
+def get_social_contribution_total_score(db: Session, faculty_id: str) -> float:
     entries = get_social_contributions_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

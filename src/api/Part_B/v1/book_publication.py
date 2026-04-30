@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ....setup.dependencies import get_db, get_current_user, User
+from ....setup.dependencies import get_db, CurrentUser
 from ....setup.storage_utils import upload_file_to_supabase
 from ....schema.Part_B.book_publication import (
     BookPublicationCreate,
@@ -19,6 +19,7 @@ router = APIRouter()
 
 @router.post("/book-publications", response_model=BookPublicationResponse, status_code=status.HTTP_201_CREATED)
 async def create_book_publication(
+    current_user: CurrentUser,
     title_and_pages: str = Form(...),
     book_title_editor: str = Form(...),
     issn_isbn: str = Form(...),
@@ -27,8 +28,7 @@ async def create_book_publication(
     is_first_author: bool = Form(False),
     department: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create book publications")
@@ -52,11 +52,11 @@ async def create_book_publication(
 
 @router.get("/book-publications/faculty/{faculty_id}", response_model=List[BookPublicationResponse])
 def read_book_publications_by_faculty(
-    faculty_id: int,
+    current_user: CurrentUser,
+    faculty_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's book publications")
@@ -66,10 +66,10 @@ def read_book_publications_by_faculty(
 
 @router.get("/book-publications", response_model=List[BookPublicationResponse])
 def read_all_book_publications(
+    current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all book publications")
@@ -79,10 +79,10 @@ def read_all_book_publications(
 
 @router.put("/book-publications/{publication_id}", response_model=BookPublicationResponse)
 def update_book_publication(
-    publication_id: int,
+    current_user: CurrentUser,
+    publication_id: str,
     publication_update: BookPublicationUpdateFaculty, # Default to faculty update schema
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     db_publication = crud_book_publication.get_book_publication(db, publication_id)
     if db_publication is None:
@@ -110,9 +110,9 @@ def update_book_publication(
 
 @router.delete("/book-publications/{publication_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_book_publication(
-    publication_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    publication_id: str,
+    db: Session = Depends(get_db)
 ):
     db_publication = crud_book_publication.get_book_publication(db, publication_id)
     if db_publication is None:
@@ -126,9 +126,9 @@ def delete_book_publication(
 
 @router.get("/book-publications/summary/{faculty_id}", response_model=BookPublicationSummary)
 def get_book_publications_summary(
-    faculty_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser,
+    faculty_id: str,
+    db: Session = Depends(get_db)
 ):
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")

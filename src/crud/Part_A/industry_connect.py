@@ -9,14 +9,14 @@ from ...schema.Part_A.industry_connect import (
     IndustryConnectUpdateDirector,
 )
 
-def get_industry_connect(db: Session, id: int) -> Optional[IndustryConnect]:
+def get_industry_connect(db: Session, id: str) -> Optional[IndustryConnect]:
     return db.query(IndustryConnect).filter(IndustryConnect.id == id).first()
 
-def get_industry_connect_by_faculty(db: Session, faculty_id: int) -> List[IndustryConnect]:
+def get_industry_connect_by_faculty(db: Session, faculty_id: str) -> List[IndustryConnect]:
     return db.query(IndustryConnect).filter(IndustryConnect.faculty_id == faculty_id).all()
 
 def create_industry_connect(
-    db: Session, connect: IndustryConnectCreate, faculty_id: int
+    db: Session, connect: IndustryConnectCreate, faculty_id: str
 ) -> IndustryConnect:
     db_connect = IndustryConnect(**connect.model_dump(), faculty_id=faculty_id)
     db.add(db_connect)
@@ -25,7 +25,7 @@ def create_industry_connect(
     return db_connect
 
 def update_industry_connect_faculty(
-    db: Session, id: int, connect_update: IndustryConnectUpdateFaculty
+    db: Session, id: str, connect_update: IndustryConnectUpdateFaculty
 ) -> Optional[IndustryConnect]:
     db_connect = get_industry_connect(db, id)
     if db_connect:
@@ -37,7 +37,7 @@ def update_industry_connect_faculty(
     return db_connect
 
 def update_industry_connect_hod(
-    db: Session, id: int, connect_update: IndustryConnectUpdateHOD
+    db: Session, id: str, connect_update: IndustryConnectUpdateHOD
 ) -> Optional[IndustryConnect]:
     db_connect = get_industry_connect(db, id)
     if db_connect:
@@ -47,7 +47,7 @@ def update_industry_connect_hod(
     return db_connect
 
 def update_industry_connect_director(
-    db: Session, id: int, connect_update: IndustryConnectUpdateDirector
+    db: Session, id: str, connect_update: IndustryConnectUpdateDirector
 ) -> Optional[IndustryConnect]:
     db_connect = get_industry_connect(db, id)
     if db_connect:
@@ -56,7 +56,7 @@ def update_industry_connect_director(
         db.refresh(db_connect)
     return db_connect
 
-def delete_industry_connect(db: Session, id: int) -> bool:
+def delete_industry_connect(db: Session, id: str) -> bool:
     db_connect = get_industry_connect(db, id)
     if db_connect:
         db.delete(db_connect)
@@ -64,6 +64,6 @@ def delete_industry_connect(db: Session, id: int) -> bool:
         return True
     return False
 
-def get_industry_connect_total_score(db: Session, faculty_id: int) -> float:
+def get_industry_connect_total_score(db: Session, faculty_id: str) -> float:
     entries = get_industry_connect_by_faculty(db, faculty_id)
     return sum([e.api_score_faculty for e in entries])

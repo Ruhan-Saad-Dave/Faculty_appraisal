@@ -34,8 +34,8 @@ class IPRUpdateDirector(BaseModel):
 
 # Schema for API response
 class IPRResponse(IPRBase):
-    id: int
-    faculty_id: int
+    id: str
+    faculty_id: str
     research_score_faculty: float
     research_score_hod: float
     research_score_director: float
