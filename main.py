@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.setup.database import engine, Base
+from src.setup.dependencies import CurrentUser
 
 # Import all models to ensure they are registered with Base
 from src.models.Part_A import (
