@@ -1,0 +1,11 @@
+# ... (your existing setup)
+
+# 1. Set the HOME environment variable to a writable path
+ENV HOME=/tmp
+
+# 2. Tell uv specifically where to put its cache
+ENV UV_CACHE_DIR=/tmp/.uv_cache
+
+# 3. Ensure your CMD uses the $PORT variable provided by Cloud Run
+# If you are using 'uv run', it should look like this:
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
