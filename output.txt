@@ -1,3 +1,0 @@
-Error running SQL query
-Failed to run sql query: ERROR:  23502: null value in column "college_name" of relation "school" violates not-null constraint
-DETAIL:  Failing row contains (7c5899b5-515a-4aa4-9c13-ba2650273a20, null, School of Computer Science, Engineering & Applications, Engineering, Type 1).

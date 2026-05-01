@@ -44,6 +44,16 @@ CREATE TABLE public.appraisal_remarks (
   CONSTRAINT appraisal_remarks_pkey PRIMARY KEY (id),
   CONSTRAINT fk_faculty_remarks FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
+CREATE TABLE public.appraisal_summary_tracking (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  faculty_id uuid UNIQUE,
+  academic_year character varying NOT NULL,
+  status character varying DEFAULT 'Pending'::character varying,
+  overall_score double precision DEFAULT 0.0,
+  last_updated timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT appraisal_summary_tracking_pkey PRIMARY KEY (id),
+  CONSTRAINT appraisal_summary_tracking_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
 CREATE TABLE public.book_publications (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   title text,
@@ -162,7 +172,15 @@ CREATE TABLE public.faculty (
   email character varying UNIQUE,
   department text,
   role character varying DEFAULT 'faculty'::character varying,
-  CONSTRAINT faculty_pkey PRIMARY KEY (id)
+  school_id uuid,
+  employee_id character varying UNIQUE,
+  designation character varying,
+  qualification character varying,
+  experience integer,
+  phone character varying,
+  academic_year character varying,
+  CONSTRAINT faculty_pkey PRIMARY KEY (id),
+  CONSTRAINT faculty_school_id_fkey FOREIGN KEY (school_id) REFERENCES public.school(id)
 );
 CREATE TABLE public.final_approval (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -419,7 +437,9 @@ CREATE TABLE public.research_proposals (
 );
 CREATE TABLE public.school (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  college_name character varying NOT NULL,
+  name character varying NOT NULL UNIQUE,
+  division character varying NOT NULL,
+  form_type character varying DEFAULT 'Type 1'::character varying,
   CONSTRAINT school_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.self_development (
