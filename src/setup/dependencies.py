@@ -96,11 +96,11 @@ def get_current_user(authorization: Annotated[Optional[str], Header()] = None) -
         user_response = supabase.auth.get_user(token)
         user = user_response.user
         
-        # In Supabase, roles, department, school_id, and division are in app_metadata/user_metadata
-        role = user.app_metadata.get("role", "faculty")
-        dept = user.user_metadata.get("department")
-        school_id = user.user_metadata.get("school_id")
-        division = user.user_metadata.get("division")
+        # Check both app_metadata and user_metadata for the role
+        role = user.app_metadata.get("role") or user.user_metadata.get("role") or "faculty"
+        dept = user.user_metadata.get("department") or user.app_metadata.get("department")
+        school_id = user.user_metadata.get("school_id") or user.app_metadata.get("school_id")
+        division = user.user_metadata.get("division") or user.app_metadata.get("division")
         
         roles = [role] if isinstance(role, str) else role
         
