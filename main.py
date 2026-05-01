@@ -82,3 +82,19 @@ app.include_router(faculty.router, prefix="/api/v1", tags=["Faculty Profile"])
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Faculty Appraisal API"}
+
+@app.get("/protected")
+def protected_route(user: CurrentUser):
+    """
+    Test endpoint for frontend to verify authentication and role extraction.
+    """
+    return {
+        "message": "Authentication successful",
+        "user": {
+            "id": user.id,
+            "roles": user.roles,
+            "department": user.department,
+            "school_id": user.school_id,
+            "division": user.division
+        }
+    }
