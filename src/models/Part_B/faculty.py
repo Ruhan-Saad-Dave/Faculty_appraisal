@@ -8,9 +8,15 @@ class Faculty(Base):
     __tablename__ = "faculty"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    employee_id = Column(String, unique=True, index=True, nullable=True)
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
+    designation = Column(String, nullable=True)
+    qualification = Column(String, nullable=True)
     department = Column(String, index=True)
+    experience = Column(Integer, nullable=True) # Years of teaching experience
+    phone = Column(String, nullable=True)
+    academic_year = Column(String, nullable=True) # Current Academic Year for the profile
     role = Column(String, default="faculty") # Roles: faculty, hod, director, dean, vc, admin
     
     school_id = Column(UUID(as_uuid=True), ForeignKey("school.id"), nullable=True)

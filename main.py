@@ -33,7 +33,7 @@ from src.api.Part_A.v1 import (
     social_contributions, industry_connect, qualification_enhancement,
     project, acr, part_a_summary
 )
-from src.api.overall.v1 import appraisal_summary, remarks, finalization, dashboard
+from src.api.overall.v1 import appraisal_summary, remarks, finalization, dashboard, faculty
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -77,6 +77,7 @@ app.include_router(appraisal_summary.router, prefix="/api/v1", tags=["Appraisal 
 app.include_router(remarks.router, prefix="/api/v1", tags=["Appraisal Remarks"])
 app.include_router(finalization.router, prefix="/api/v1", tags=["Finalization (Enclosures & Declaration)"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard (Higher Authorities)"])
+app.include_router(faculty.router, prefix="/api/v1", tags=["Faculty Profile"])
 
 @app.get("/")
 def read_root():

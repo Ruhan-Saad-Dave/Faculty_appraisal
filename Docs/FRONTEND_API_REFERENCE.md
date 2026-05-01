@@ -45,22 +45,27 @@
 | `POST /research-projects` | `title`, `funding_agency`, `grant_amount`, `role` | `role` (e.g., PI, Co-PI). `grant_amount` is a Double. |
 
 ### C. Dashboard (For Authorities)
-`GET /api/v1/dashboard/subordinates`
-- **Data Returned:** List of subordinates.
-- **Key Field:** `status` (e.g., `Pending`, `Submitted`, `HOD Approved`). 
-- **Usage:** Use this to build the HOD/Director/Dean homepages to show who has finished their form.
+...
+---
+
+### D. Faculty Profile (Management)
+*Base Path: `/api/v1`*
+
+| Endpoint | Method | Purpose |
+| :--- | :--- | :--- |
+| `/profile` | `GET` | Get the logged-in user's profile (Employee ID, Designation, etc.). |
+| `/profile` | `PUT` | Update the logged-in user's profile data. |
+| `/profile/{id}` | `GET` | Authorities (HOD/Director) can view a subordinate's profile. |
 
 ---
 
 ## 4. Field Definitions & Data Types
-
-| Field Name | Type | Description |
-| :--- | :--- | :--- |
-| `sr_no` | Integer | Serial Number. Use this to order the rows in the UI list. |
-| `api_score_faculty` | Double | The self-appraisal score entered by the Faculty. |
-| `api_score_hod` | Double | The validation score entered by the HOD. (Read-only for Faculty). |
-| `document` | String (URL) | A public URL to the PDF proof. If null, no proof was uploaded. |
-| `department` | String | e.g., "Computer Science". Must match the user's metadata exactly. |
+...
+| `academic_year` | String | e.g. "2025-26". Used in both profile and submission. |
+| `employee_id` | String | Unique institutional identifier for the faculty. |
+| `designation` | String | Current job title (e.g. "Professor", "Assistant Professor"). |
+| `experience` | Integer | Total years of teaching experience. |
+| `phone` | String | Contact number. |
 
 ---
 
