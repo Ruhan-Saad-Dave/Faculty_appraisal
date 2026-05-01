@@ -17,15 +17,31 @@ router = APIRouter()
 @router.post("/teaching-process", response_model=TeachingProcessResponse, status_code=status.HTTP_201_CREATED)
 async def create_teaching_process(
     current_user: CurrentUser,
-    sr_no: Optional[int] = Form(None),
-    semester: str = Form(...),
-    course_code_name: str = Form(...),
-    planned_classes: int = Form(...),
-    conducted_classes: int = Form(...),
-    department: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None),
+    sr_no: Optional[int] = Form(None, description="Serial number of the record"),
+    semester: str = Form(..., description="Academic semester (e.g., Autumn 2025)"),
+    course_code_name: str = Form(..., description="Code and name of the course"),
+    planned_classes: int = Form(..., description="Number of classes planned"),
+    conducted_classes: int = Form(..., description="Number of classes actually conducted"),
+    department: Optional[str] = Form(None, description="Faculty department"),
+    file: Optional[UploadFile] = File(None, description="PDF proof of teaching activities"),
     db: Session = Depends(get_db)
 ):
+    """
+    **Create a new Teaching Process entry (Lectures/Practicals).**
+
+    - **URL Path:** `/api/v1/part-a/teaching-process`
+    - **Role Required:** `faculty`
+    - **Request Body (Form-Data):**
+        - `sr_no` (int): Serial number.
+        - `semester` (str): Semester name.
+        - `course_code_name` (str): Course identifier.
+        - `planned_classes` (int): Target number of classes.
+        - `conducted_classes` (int): Actual classes held.
+        - `department` (str): Department name.
+        - `file` (file): PDF document proof.
+    - **Response:**
+        - Returns the created `TeachingProcessResponse` including `id`, `faculty_id`, and `api_score_faculty`.
+    """
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only faculty can fill their own teaching data")
     
@@ -47,9 +63,16 @@ async def create_teaching_process(
 @router.get("/teaching-process/faculty/{faculty_id}", response_model=List[TeachingProcessResponse])
 def read_teaching_process_by_faculty(
     current_user: CurrentUser,
-    faculty_id: str,
+    faculty_id: Annotated[str, Path(description="UUID of the faculty member")],
     db: Session = Depends(get_db)
 ):
+    """
+    **Retrieve all teaching process entries for a specific faculty.**
+
+    - **URL Path:** `/api/v1/part-a/teaching-process/faculty/{faculty_id}`
+    - **Access Control:** User can see their own data; Higher authorities can see subordinates.
+    - **Response:** List of teaching process objects.
+    """
     if "admin" not in current_user.roles and current_user.id != faculty_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this data")
     return crud_teaching_process.get_teaching_process_by_faculty(db, faculty_id)
@@ -59,6 +82,12 @@ def read_all_teaching_process(
     current_user: CurrentUser,
     db: Session = Depends(get_db)
 ):
+    """
+    **Retrieve all teaching process entries (Admin only).**
+
+    - **URL Path:** `/api/v1/part-a/teaching-process`
+    - **Response:** List of all teaching process objects.
+    """
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can view all teaching data")
     # This would need a get_all_teaching_process in CRUD, or we just filter by nothing
@@ -67,10 +96,19 @@ def read_all_teaching_process(
 @router.put("/teaching-process/{id}", response_model=TeachingProcessResponse)
 def update_teaching_process(
     current_user: CurrentUser,
-    id: str,
-    teaching_update: TeachingProcessUpdateFaculty, # Usually we'd use a Union or handle it inside
+    id: Annotated[str, Path(description="UUID of the teaching process record")],
+    teaching_update: TeachingProcessUpdateFaculty,
     db: Session = Depends(get_db)
 ):
+    """
+    **Update an existing teaching process record.**
+
+    - **URL Path:** `/api/v1/part-a/teaching-process/{id}`
+    - **Update Logic:**
+        - **Faculty:** Can update basic teaching info.
+        - **HOD/Admin:** Can update scores and verification status.
+    - **Response:** The updated teaching process object.
+    """
     db_teaching = crud_teaching_process.get_teaching_process(db, id)
     if not db_teaching:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
@@ -87,9 +125,15 @@ def update_teaching_process(
 @router.delete("/teaching-process/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_teaching_process(
     current_user: CurrentUser,
-    id: str,
+    id: Annotated[str, Path(description="UUID of the teaching process record")],
     db: Session = Depends(get_db)
 ):
+    """
+    **Delete a teaching process record (Admin only).**
+
+    - **URL Path:** `/api/v1/part-a/teaching-process/{id}`
+    - **Response:** 204 No Content.
+    """
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can delete entries")
     crud_teaching_process.delete_teaching_process(db, id)
@@ -98,9 +142,17 @@ def delete_teaching_process(
 @router.get("/teaching-process/summary/{faculty_id}")
 def read_teaching_process_summary(
     current_user: CurrentUser,
-    faculty_id: Annotated[str, Path()],
+    faculty_id: Annotated[str, Path(description="UUID of the faculty member")],
     db: Session = Depends(get_db)
 ):
+    """
+    **Get the API score summary for teaching process.**
+
+    - **URL Path:** `/api/v1/part-a/teaching-process/summary/{faculty_id}`
+    - **Response:**
+        - `totalMarksOutOf100`: Aggregated percentage of classes held.
+        - `scaledMarksOutOf25`: Scaled score for final appraisal.
+    """
     if not current_user.has_authority_over(faculty_id, "faculty"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     total_score = crud_teaching_process.get_teaching_process_total_score(db, faculty_id)

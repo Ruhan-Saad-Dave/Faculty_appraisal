@@ -1,0 +1,24 @@
+# Create Teaching Methods
+
+**URL Path:** `/api/v1/part-a/teaching-methods`
+**HTTP Method:** `POST`
+**Description:** Creates a new teaching methods entry.
+
+## Request Data
+- **Type:** `multipart/form-data`
+- **Fields:**
+
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| short_description | string | Short description |
+| details_proof | boolean | Proof provided |
+| sr_no | integer | Serial number (optional) |
+| department | string | Department (optional) |
+| file | file (PDF) | Proof document (optional) |
+
+## Response Data
+- **Success Status Code:** 201 Created
+- **Fields:** Teaching Methods object.
+
+## Access Control
+- **Roles:** `faculty`

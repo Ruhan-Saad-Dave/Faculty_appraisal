@@ -21,14 +21,30 @@ router = APIRouter()
 async def create_journal_publication(
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
-    sr_no: Annotated[Optional[int], Form()] = None,
-    title_with_page_nos: Annotated[Optional[str], Form()] = None,
-    journal_details: Annotated[Optional[str], Form()] = None,
-    issn_isbn_no: Annotated[Optional[str], Form()] = None,
-    indexing: Annotated[Optional[IndexingEnum], Form()] = None,
-    department: Annotated[Optional[str], Form()] = None,
-    file: Annotated[Optional[UploadFile], File()] = None,
+    sr_no: Annotated[Optional[int], Form(description="Serial number of the publication")] = None,
+    title_with_page_nos: Annotated[Optional[str], Form(description="Title of the paper with page numbers")] = None,
+    journal_details: Annotated[Optional[str], Form(description="Name and details of the journal")] = None,
+    issn_isbn_no: Annotated[Optional[str], Form(description="ISSN/ISBN number of the journal")] = None,
+    indexing: Annotated[Optional[IndexingEnum], Form(description="Indexing of the journal (SCOPUS, WOS, UGC_CARE, PEER_REVIEWED)")] = None,
+    department: Annotated[Optional[str], Form(description="Department of the faculty")] = None,
+    file: Annotated[Optional[UploadFile], File(description="PDF proof of the journal publication")] = None,
 ):
+    """
+    **Create a new Journal Publication entry.**
+
+    - **URL Path:** `/api/v1/part-b/journal-publications`
+    - **Role Required:** `faculty`
+    - **Request Body (Form-Data):**
+        - `sr_no` (int): Serial number.
+        - `title_with_page_nos` (str): Full title of the paper.
+        - `journal_details` (str): Journal name, volume, issue, etc.
+        - `issn_isbn_no` (str): Unique ISSN or ISBN code.
+        - `indexing` (string): One of `SCOPUS`, `WOS`, `UGC_CARE`, or `PEER_REVIEWED`.
+        - `department` (str): Faculty's department.
+        - `file` (file): PDF document for verification.
+    - **Response:**
+        - Returns the created `JournalPublicationResponse` object including `id`, `faculty_id`, and calculated `api_score_faculty`.
+    """
     if "faculty" not in current_user.roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create journal publications")
     
@@ -52,11 +68,18 @@ async def create_journal_publication(
 @router.get("/journal-publications/faculty/{faculty_id}", response_model=List[JournalPublicationResponse])
 def read_journal_publications_by_faculty(
     current_user: CurrentUser,
-    faculty_id: Annotated[str, Path()],
+    faculty_id: Annotated[str, Path(description="UUID of the faculty member")],
     db: Annotated[Session, Depends(get_db)],
     skip: int = 0,
     limit: int = 100
 ):
+    """
+    **Retrieve all journal publications for a specific faculty.**
+
+    - **URL Path:** `/api/v1/part-b/journal-publications/faculty/{faculty_id}`
+    - **Access Control:** Higher authorities (HOD, Director, etc.) can see their subordinates' data.
+    - **Response:** List of journal publication objects.
+    """
     if not current_user.has_authority_over(faculty_id, "faculty"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's journal publications")
     
@@ -70,6 +93,12 @@ def read_all_journal_publications(
     skip: int = 0,
     limit: int = 100
 ):
+    """
+    **Retrieve all journal publications (Admin/Dean/VC only).**
+
+    - **URL Path:** `/api/v1/part-b/journal-publications`
+    - **Response:** List of all journal publication objects in the system.
+    """
     if not any(role in ["admin", "dean", "vc"] for role in current_user.roles):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view all journal publications")
     
@@ -79,10 +108,20 @@ def read_all_journal_publications(
 @router.put("/journal-publications/{publication_id}", response_model=JournalPublicationResponse)
 def update_journal_publication(
     current_user: CurrentUser,
-    publication_id: Annotated[str, Path()],
+    publication_id: Annotated[str, Path(description="UUID of the publication record")],
     publication_update: JournalPublicationUpdateFaculty | JournalPublicationUpdateHOD | JournalPublicationUpdateDirector,
     db: Annotated[Session, Depends(get_db)]
 ):
+    """
+    **Update an existing journal publication.**
+
+    - **URL Path:** `/api/v1/part-b/journal-publications/{publication_id}`
+    - **Update Logic:**
+        - **Faculty:** Can update fields like title, journal details, etc.
+        - **HOD:** Can only update `api_score_hod`.
+        - **Director:** Can only update `api_score_director`.
+    - **Response:** The updated journal publication object.
+    """
     db_publication = crud_journal_publication.get_journal_publication(db, publication_id)
     if db_publication is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Journal Publication not found")
@@ -113,9 +152,15 @@ def update_journal_publication(
 @router.delete("/journal-publications/{publication_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_journal_publication(
     current_user: CurrentUser,
-    publication_id: Annotated[str, Path()],
+    publication_id: Annotated[str, Path(description="UUID of the publication record")],
     db: Annotated[Session, Depends(get_db)]
 ):
+    """
+    **Delete a journal publication record.**
+
+    - **URL Path:** `/api/v1/part-b/journal-publications/{publication_id}`
+    - **Response:** 204 No Content on success.
+    """
     db_publication = crud_journal_publication.get_journal_publication(db, publication_id)
     if db_publication is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Journal Publication not found")
@@ -129,9 +174,15 @@ def delete_journal_publication(
 @router.get("/journal-publications/summary/{faculty_id}", response_model=JournalPublicationSummary)
 def get_journal_publications_summary(
     current_user: CurrentUser,
-    faculty_id: Annotated[str, Path()],
+    faculty_id: Annotated[str, Path(description="UUID of the faculty member")],
     db: Annotated[Session, Depends(get_db)]
 ):
+    """
+    **Get the total API score summary for journal publications.**
+
+    - **URL Path:** `/api/v1/part-b/journal-publications/summary/{faculty_id}`
+    - **Response:** Total score (sum of all verified journal publications).
+    """
     if not current_user.has_authority_over(faculty_id, "faculty"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this faculty's summary")
     

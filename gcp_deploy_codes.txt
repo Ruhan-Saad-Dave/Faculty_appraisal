@@ -1,0 +1,10 @@
+cd Faculty_appraisal
+
+git pull
+
+gcloud builds submit --tag us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fastapi-backend .
+
+gcloud run deploy fastapi-backend \
+    --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fastapi-backend \
+    --region us-central1 \
+    --allow-unauthenticated
