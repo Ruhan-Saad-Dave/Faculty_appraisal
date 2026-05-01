@@ -19,7 +19,6 @@ references/
 .python-version
 output.txt
 PART-A.pdf
-uv.lock (optional, but keep for exact builds)
 README.md
 README.Docker.md
 schema.txt
