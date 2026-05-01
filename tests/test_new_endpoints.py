@@ -7,10 +7,48 @@ from uuid import UUID
 
 from unittest.mock import patch
 
+from src.setup.database import SessionLocal
+from src.models.Part_B.faculty import Faculty
+from src.models.overall.school import School, DivisionEnum, FormTypeEnum
+
 load_dotenv(override=True)
 
 BASE_URL = "http://testserver"
 TEST_FACULTY_ID = "00000000-0000-0000-0000-000000000001"
+TEST_SCHOOL_ID = "00000000-0000-0000-0000-000000000000"
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_test_data():
+    db = SessionLocal()
+    try:
+        # 1. Ensure School exists
+        school = db.query(School).filter(School.id == TEST_SCHOOL_ID).first()
+        if not school:
+            school = School(
+                id=TEST_SCHOOL_ID,
+                name="Test Engineering School",
+                division=DivisionEnum.ENGINEERING,
+                form_type=FormTypeEnum.TYPE_1
+            )
+            db.add(school)
+            db.commit()
+        
+        # 2. Ensure Faculty exists
+        faculty = db.query(Faculty).filter(Faculty.id == TEST_FACULTY_ID).first()
+        if not faculty:
+            faculty = Faculty(
+                id=TEST_FACULTY_ID,
+                name="Test Faculty",
+                email="test.faculty@example.com",
+                department="Computer Science",
+                role="faculty",
+                school_id=TEST_SCHOOL_ID
+            )
+            db.add(faculty)
+            db.commit()
+        yield
+    finally:
+        db.close()
 
 @pytest.fixture(autouse=True)
 def mock_storage_upload():
@@ -91,3 +129,16 @@ async def test_finalization_declaration():
         assert response.status_code == 200
         assert response.json()["place"] == "Delhi"
         assert response.json()["designation"] == "Assistant Professor"
+
+@pytest.mark.asyncio
+async def test_submit_appraisal_workflow():
+    """Tests the final submission trigger"""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
+        submit_data = {"academic_year": "2025-26"}
+        response = await ac.post("/api/v1/appraisal-summary/submit", json=submit_data)
+        
+        assert response.status_code == 200
+        res_data = response.json()
+        assert res_data["status"] == "Submitted"
+        assert "overall_score" in res_data
+        assert res_data["academic_year"] == "2025-26"

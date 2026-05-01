@@ -32,3 +32,13 @@ class AppraisalSummaryResponse(BaseModel):
     part_a_summary: PartASummary
     part_b_summary: PartBSummary
     grand_total_score: float = 0.0 # out of 575
+
+class AppraisalSubmitRequest(BaseModel):
+    academic_year: str # e.g., "2025-26"
+
+class AppraisalSubmitResponse(BaseModel):
+    faculty_id: UUID
+    status: str
+    overall_score: float
+    academic_year: str
+    message: str = "Appraisal submitted successfully"
