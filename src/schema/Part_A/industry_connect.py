@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class IndustryConnectBase(BaseModel):
     sr_no: Optional[int] = None
@@ -24,8 +25,8 @@ class IndustryConnectUpdateDirector(BaseModel):
     api_score_director: float
 
 class IndustryConnectResponse(IndustryConnectBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: float
     api_score_hod: float
     api_score_director: float

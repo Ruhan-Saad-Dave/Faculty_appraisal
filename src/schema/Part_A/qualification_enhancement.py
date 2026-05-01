@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class QualificationEnhancementBase(BaseModel):
     sr_no: Optional[int] = None
@@ -21,8 +22,8 @@ class QualificationEnhancementUpdateDirector(BaseModel):
     api_score_director: float
 
 class QualificationEnhancementResponse(QualificationEnhancementBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: float
     api_score_hod: float
     api_score_director: float

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 # Base schema for common attributes
 class ProductDevelopmentBase(BaseModel):
@@ -27,8 +28,8 @@ class ProductDevelopmentUpdateDirector(BaseModel):
 
 # Schema for API response
 class ProductDevelopmentResponse(ProductDevelopmentBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: int
     api_score_hod: float
     api_score_director: float

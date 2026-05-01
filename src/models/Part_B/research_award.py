@@ -9,8 +9,8 @@ class ResearchAward(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
-    award_name = Column(Text, nullable=False)
-    award_date = Column(Date, nullable=False)
+    award_name = Column(Text, name="title", nullable=False)
+    award_date = Column(Date, name="date_of_award", nullable=False)
     awarding_agency = Column(String(255), nullable=False)
     level = Column(String(50), nullable=False) # International / National
     research_score_faculty = Column(Double, default=0.0)

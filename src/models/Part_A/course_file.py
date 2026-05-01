@@ -12,11 +12,11 @@ class CourseFile(Base):
     sr_no = Column(Integer, nullable=True)
     course_paper = Column(String(255), nullable=False)
     title = Column(String(255), nullable=False)
-    details_proof = Column(Boolean, default=False)
+    details_proof = Column(Boolean, name="details", default=False)
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
     signature = Column(Boolean, default=False)
     department = Column(String, nullable=True)
     document = Column(String, nullable=True)
 
-    faculty = relationship("Faculty")
+    faculty = relationship("Faculty", back_populates="course_files")

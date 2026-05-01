@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/enclosures", response_model=EnclosureResponse, status_code=status.HTTP_201_CREATED)
 async def create_enclosure(
     current_user: CurrentUser,
-    description: Annotated[str, Form()],
+    enclosure_text: Annotated[str, Form()],
     file: Annotated[Optional[UploadFile], File()] = None,
     db: Session = Depends(get_db)
 ):
@@ -23,7 +23,7 @@ async def create_enclosure(
     if file:
         document_path = await upload_file_to_supabase(file, current_user.id)
     
-    enclosure_data = EnclosureCreate(description=description)
+    enclosure_data = EnclosureCreate(enclosure_text=enclosure_text)
     return crud_finalization.create_enclosure(db, current_user.id, enclosure_data, document_path)
 
 @router.get("/enclosures/{faculty_id}", response_model=List[EnclosureResponse])

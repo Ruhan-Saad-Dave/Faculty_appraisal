@@ -7,8 +7,8 @@ from ...schema.overall.finalization import EnclosureCreate, DeclarationCreate
 def get_enclosures_by_faculty(db: Session, faculty_id: str) -> List[Enclosure]:
     return db.query(Enclosure).filter(Enclosure.faculty_id == faculty_id).all()
 
-def create_enclosure(db: Session, faculty_id: str, enclosure: EnclosureCreate, document_url: Optional[str] = None) -> Enclosure:
-    db_enclosure = Enclosure(**enclosure.model_dump(), faculty_id=faculty_id, document_url=document_url)
+def create_enclosure(db: Session, faculty_id: str, enclosure: EnclosureCreate, document_path: Optional[str] = None) -> Enclosure:
+    db_enclosure = Enclosure(**enclosure.model_dump(), faculty_id=faculty_id, document=document_path)
     db.add(db_enclosure)
     db.commit()
     db.refresh(db_enclosure)

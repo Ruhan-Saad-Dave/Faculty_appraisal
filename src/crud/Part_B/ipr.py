@@ -66,5 +66,5 @@ def delete_ipr(db: Session, ipr_id: str) -> Optional[IPR]:
 
 def get_ipr_total_score(db: Session, faculty_id: str) -> float:
     iprs = db.query(IPR).filter(IPR.faculty_id == faculty_id).all()
-    total_score = sum([entry.research_score_faculty for entry in ipr_entries])
+    total_score = sum([entry.research_score_faculty for entry in iprs])
     return total_score

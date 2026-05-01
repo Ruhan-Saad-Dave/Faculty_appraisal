@@ -11,7 +11,7 @@ class IPR(Base):
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
     title = Column(Text, nullable=False)
     scope = Column(String(20), nullable=False) # National / International
-    filing_date = Column(Date, nullable=False)
+    filing_date = Column(Date, name="date_of_filing", nullable=False)
     status = Column(String(50), nullable=False) # Published / Granted
     patent_file_no = Column(String(100), nullable=False)
     research_score_faculty = Column(Double, default=0.0)

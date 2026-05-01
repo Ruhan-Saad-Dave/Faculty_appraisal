@@ -9,7 +9,7 @@ class ProductDevelopment(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
-    product_description = Column(Text, nullable=False)
+    product_description = Column(Text, name="product_details", nullable=False)
     usage_type = Column(String(50), nullable=False) # Used in Lab / Commercialized
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class SocialContributionBase(BaseModel):
     sr_no: Optional[int] = None
@@ -24,8 +25,8 @@ class SocialContributionUpdateDirector(BaseModel):
     api_score_director: float
 
 class SocialContributionResponse(SocialContributionBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: float
     api_score_hod: float
     api_score_director: float

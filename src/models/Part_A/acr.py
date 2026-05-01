@@ -17,4 +17,4 @@ class ACR(Base):
     department = Column(String, nullable=True)
     document = Column(String, nullable=True)
 
-    faculty = relationship("Faculty")
+    faculty = relationship("Faculty", back_populates="acr_entries")

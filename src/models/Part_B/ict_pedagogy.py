@@ -9,10 +9,10 @@ class ICTPedagogy(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=False)
-    pedagogy_type = Column(String(100), nullable=False) # ENUM / String
-    quadrants = Column(Integer, nullable=False)
+    title = Column(String(255), name="title_of_development", nullable=False)
+    description = Column(Text, name="short_description", nullable=False)
+    pedagogy_type = Column(String(100), name="type", nullable=False) # ENUM / String
+    quadrants = Column(Integer, name="no_of_quadrants", nullable=False)
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
     api_score_director = Column(Double, default=0.0)

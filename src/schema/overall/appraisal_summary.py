@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from uuid import UUID
 
 class PartASummary(BaseModel):
     teaching_score: float = 0.0
@@ -27,7 +28,7 @@ class PartBSummary(BaseModel):
     part_b_total: float = 0.0 # out of 375
 
 class AppraisalSummaryResponse(BaseModel):
-    faculty_id: str
+    faculty_id: UUID
     part_a_summary: PartASummary
     part_b_summary: PartBSummary
     grand_total_score: float = 0.0 # out of 575

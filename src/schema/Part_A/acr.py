@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class ACRBase(BaseModel):
     sr_no: Optional[int] = None
@@ -19,8 +20,8 @@ class ACRUpdateDirector(BaseModel):
     signature: Optional[bool] = None
 
 class ACRResponse(ACRBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_hod: float
     api_score_director: float
     signature: bool

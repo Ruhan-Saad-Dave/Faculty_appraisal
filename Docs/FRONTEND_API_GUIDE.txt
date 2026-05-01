@@ -1,13 +1,13 @@
 # API Documentation for Frontend Team - Faculty Appraisal System
 
 ## 1. Base URL & Authentication
-- **Base URL**: `http://localhost:8000/api` (or your production domain)
+- **Base URL**: `http://localhost:8000/api/v1`
 - **Auth Strategy**: Supabase JWT (Bearer Token)
 - **Header**: `Authorization: Bearer <your_supabase_jwt>`
 - **User IDs**: All `faculty_id` and item `id` fields are **UUID strings**.
 
 ## 2. Global Rules
-- **Prefix**: Every endpoint starts with `/api`.
+- **Prefix**: Every endpoint starts with `/api/v1`.
 - **Method Mapping**:
   - `POST`: Create a new entry.
   - `GET`: Retrieve entry/entries.
@@ -18,54 +18,85 @@
   - `HoD` can see data of their department and update `api_score_hod`.
   - `Director`, `Dean`, `VC` have higher levels of visibility and scoring authority.
 
-## 3. Endpoint Reference Table
+## 3. Part A: Teaching & Activities (Request/Response)
 
-| Category | Base Endpoint | Summary Endpoint (GET) |
-| :--- | :--- | :--- |
-| **Teaching Process** | `/teaching-process` | `/teaching-process/summary/{id}` |
-| **Course File** | `/course-files` | `/course-files/summary/{id}` |
-| **Teaching Methods** | `/teaching-methods` | `/teaching-methods/summary/{id}` |
-| **Projects** | `/projects` | `/projects/summary/{id}` |
-| **Qualification** | `/qualification-enhancement`| `/qualification-enhancement/summary/{id}` |
-| **Student Feedback** | `/student-feedback` | `/student-feedback/summary/{id}` |
-| **Dept. Activities** | `/department-activities` | `/department-activities/summary/{id}` |
-| **Univ. Activities** | `/university-activities` | `/university-activities/summary/{id}` |
-| **Social Contributions**| `/social-contributions` | `/social-contributions/summary/{id}` |
-| **Industry Connect** | `/industry-connect` | `/industry-connect/summary/{id}` |
-| **ACR** | `/acr` | `/acr/summary/{id}` |
-| **Journal Pubs** | `/journal-publications` | `/journal-publications/summary/{id}` |
-| **Book Pubs** | `/book-publications` | `/book-publications/summary/{id}` |
-| **ICT Pedagogy** | `/pedagogy` | `/pedagogy/summary/{id}` |
-| **Research Guidance** | `/research-guidance` | `/research-guidance/summary/{id}` |
-| **Research Projects** | `/research-projects` | `/research-projects/summary/{id}` |
-| **IPR** | `/ipr` | `/ipr/summary/{id}` |
-| **Research Awards** | `/research-awards` | `/research-awards/summary/{id}` |
-| **Conferences** | `/conferences` | `/conferences/summary/{id}` |
-| **Proposals** | `/research-proposals` | `/research-proposals/summary/{id}` |
-| **Products** | `/products` | `/products/summary/{id}` |
-| **Self Development** | `/self-development` | `/self-development/summary/{id}` |
-| **Industrial Training**| `/industrial-training` | `/industrial-training/summary/{id}` |
-| **Overall Summary** | `/appraisal-summary/{id}` | N/A |
+### 3.1. Teaching Process (`/part-a/teaching-process`)
+- **POST Payload (Multipart/Form-Data)**:
+  - `sr_no`: Integer (Optional)
+  - `semester`: String (e.g., "Spring 2026")
+  - `course_code_name`: String (e.g., "CS101 - Intro")
+  - `planned_classes`: Integer
+  - `conducted_classes`: Integer
+  - `department`: String (Optional)
+  - `file`: PDF File (Optional)
+- **Response**:
+  - `id`: UUID, `faculty_id`: UUID, `api_score_faculty`: Float, `api_score_hod`: Float, `signature`: Boolean, `document`: String (Relative Path)
 
-## 4. File Uploads (Proof Documents)
-- **Method**: Use `multipart/form-data` for `POST` and `PUT` requests that require proof.
-- **Field Name**: `file` (accepts `.pdf`).
-- **Response**: The API returns the Supabase Storage path in the `document` field.
+### 3.2. Course File (`/part-a/course-files`)
+- **POST Payload (Multipart/Form-Data)**:
+  - `sr_no`: Integer (Optional), `course_paper`: String, `title`: String, `details_proof`: Boolean, `department`: String (Optional), `file`: PDF File (Optional)
+- **Response**: Same pattern as above.
 
-## 5. Appraisal Finalization & Remarks
-To be used by authorities for final approval and comments:
+### 3.3. Teaching Methods (`/part-a/teaching-methods`)
+- **POST Payload (Multipart/Form-Data)**:
+  - `short_description`: String, `details_proof`: Boolean, `sr_no`: Integer (Optional), `department`: String (Optional), `file`: PDF File (Optional)
 
-- **Enclosures**: `POST /api/enclosures` | `GET /api/enclosures/{faculty_id}`
-- **Declaration**: `POST /api/declaration` | `GET /api/declaration/{faculty_id}`
-- **HOD Update**: `PUT /api/appraisal-remarks/hod/{faculty_id}`
-- **Director Update**: `PUT /api/appraisal-remarks/director/{faculty_id}`
-- **Dean Update**: `PUT /api/appraisal-remarks/dean/{faculty_id}`
-- **VC (Final)**: `PUT /api/appraisal-remarks/final/{faculty_id}`
+### 3.4. Student Feedback (`/part-a/student-feedback`)
+- **POST Payload (Multipart/Form-Data)**:
+  - `course_code_name`: String, `first_feedback`: Float (0-5), `second_feedback`: Float (0-5), `sr_no`: Integer (Optional), `department`: String (Optional), `file`: PDF File (Optional)
+- **Response**: Includes `average` field (computed).
 
-## 6. Development & Testing
-- **Swagger Docs**: Go to `http://localhost:8000/docs` to see interactive schema and try endpoints.
-- **Error Codes**:
-  - `401`: Token missing or expired.
-  - `403`: Role-based permission denied.
-  - `404`: Entry not found.
-  - `422`: Validation error (check request body fields).
+---
+
+## 4. Part B: Research & Academic Contributions
+
+### 4.1. Journal Publications (`/part-b/journal-publications`)
+- **POST Payload (Multipart/Form-Data)**:
+  - `sr_no`: Integer (Optional), `title_with_page_nos`: String, `journal_details`: String, `issn_isbn_no`: String, `indexing`: Enum (SCOPUS, SCI, SCIE, UGC), `department`: String, `file`: PDF File
+- **Response**:
+  - `id`: UUID, `faculty_id`: UUID, `api_score_faculty`: Integer, etc.
+
+### 4.2. Research Projects (`/part-b/research-projects`)
+- **POST Payload (Multipart/Form-Data)**:
+  - `project_name`: String, `funding_agency`: String, `date_of_sanction`: Date (YYYY-MM-DD), `funding_amount`: Float, `role`: String, `project_status`: String, `department`: String, `file`: PDF File
+
+### 4.3. Research Guidance (`/part-b/research-guidance`)
+- **POST Payload**:
+  - `degree`: String (ME/PHD), `student_name`: String, `submission_status`: String, `award_date`: Date (YYYY-MM-DD), `department`: String (Optional), `file`: PDF File (Optional)
+
+---
+
+## 5. Overall Summary & Finalization
+
+### 5.1. Appraisal Summary (`GET /appraisal-summary/{faculty_id}`)
+- **Full Path**: `/api/v1/appraisal-summary/{faculty_id}`
+- **Response**:
+  ```json
+  {
+    "faculty_id": "uuid",
+    "part_a_summary": {
+      "teaching_score": 25.0,
+      "feedback_score": 10.0,
+      "acr_score": 25.0,
+      "part_a_total": 200.0
+    },
+    "part_b_summary": {
+      "journal_score": 30.0,
+      "book_score": 10.0,
+      "part_b_total": 375.0
+    },
+    "grand_total_score": 575.0
+  }
+  ```
+
+### 5.2. Finalization
+- **Enclosures**: `POST /api/v1/enclosures` (Multipart: `description`, `file`)
+- **Declaration**: `POST /api/v1/declaration` (JSON: `is_declared`, `place`, `designation`)
+
+## 6. Error Codes
+- `401`: Token missing or expired.
+- `403`: Role-based permission denied.
+- `404`: Entry not found.
+- `422`: Validation error (check request body fields).
+
+**Interactive Docs**: coming soon

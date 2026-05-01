@@ -13,7 +13,12 @@ CREATE TABLE public.academic_events (
   research_score_director double precision,
   department text,
   document text,
-  CONSTRAINT academic_events_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT academic_events_pkey PRIMARY KEY (id),
+  CONSTRAINT academic_events_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.annual_confidential_report (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -23,7 +28,12 @@ CREATE TABLE public.annual_confidential_report (
   signature boolean,
   department text,
   document text,
-  CONSTRAINT annual_confidential_report_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT annual_confidential_report_pkey PRIMARY KEY (id),
+  CONSTRAINT annual_confidential_report_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.appraisal_remarks (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -47,7 +57,12 @@ CREATE TABLE public.book_publications (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT book_publications_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT book_publications_pkey PRIMARY KEY (id),
+  CONSTRAINT book_publications_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.contribution_to_society (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -58,7 +73,12 @@ CREATE TABLE public.contribution_to_society (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT contribution_to_society_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT contribution_to_society_pkey PRIMARY KEY (id),
+  CONSTRAINT contribution_to_society_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.course_file (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -70,7 +90,12 @@ CREATE TABLE public.course_file (
   signature boolean,
   department text,
   document text,
-  CONSTRAINT course_file_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT course_file_pkey PRIMARY KEY (id),
+  CONSTRAINT course_file_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.dean_remarks (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -92,7 +117,12 @@ CREATE TABLE public.departmental_activities (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT departmental_activities_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT departmental_activities_pkey PRIMARY KEY (id),
+  CONSTRAINT departmental_activities_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.director_remarks (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -131,6 +161,7 @@ CREATE TABLE public.faculty (
   name character varying,
   email character varying UNIQUE,
   department text,
+  role character varying DEFAULT 'faculty'::character varying,
   CONSTRAINT faculty_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.final_approval (
@@ -166,7 +197,12 @@ CREATE TABLE public.ict_teaching_content (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT ict_teaching_content_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT ict_teaching_content_pkey PRIMARY KEY (id),
+  CONSTRAINT ict_teaching_content_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.industrial_training (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -178,7 +214,12 @@ CREATE TABLE public.industrial_training (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT industrial_training_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT industrial_training_pkey PRIMARY KEY (id),
+  CONSTRAINT industrial_training_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.industry_connect_activity (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -189,7 +230,12 @@ CREATE TABLE public.industry_connect_activity (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT industry_connect_activity_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT industry_connect_activity_pkey PRIMARY KEY (id),
+  CONSTRAINT industry_connect_activity_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.innovative_teaching_methods (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -200,7 +246,12 @@ CREATE TABLE public.innovative_teaching_methods (
   signature boolean,
   department text,
   document text,
-  CONSTRAINT innovative_teaching_methods_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT innovative_teaching_methods_pkey PRIMARY KEY (id),
+  CONSTRAINT innovative_teaching_methods_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.ipr (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -214,7 +265,15 @@ CREATE TABLE public.ipr (
   research_score_director double precision,
   department text,
   document text,
-  CONSTRAINT ipr_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  api_score_faculty double precision DEFAULT 0.0,
+  api_score_hod double precision DEFAULT 0.0,
+  api_score_director double precision DEFAULT 0.0,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT ipr_pkey PRIMARY KEY (id),
+  CONSTRAINT ipr_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.products_developed (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -225,7 +284,12 @@ CREATE TABLE public.products_developed (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT products_developed_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT products_developed_pkey PRIMARY KEY (id),
+  CONSTRAINT products_developed_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.project (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -235,20 +299,31 @@ CREATE TABLE public.project (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT project_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT project_pkey PRIMARY KEY (id),
+  CONSTRAINT project_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.published_papers (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   title text,
   journal_details text,
-  issn_isbn character varying,
   indexing character varying,
   api_score_faculty double precision,
   api_score_hod double precision,
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT published_papers_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  title_with_page_nos text,
+  issn_isbn_no character varying,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT published_papers_pkey PRIMARY KEY (id),
+  CONSTRAINT published_papers_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.qualification_enhancement (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -258,7 +333,12 @@ CREATE TABLE public.qualification_enhancement (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT qualification_enhancement_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT qualification_enhancement_pkey PRIMARY KEY (id),
+  CONSTRAINT qualification_enhancement_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.research_awards (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -271,7 +351,15 @@ CREATE TABLE public.research_awards (
   research_score_director double precision,
   department text,
   document text,
-  CONSTRAINT research_awards_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  api_score_faculty double precision DEFAULT 0.0,
+  api_score_hod double precision DEFAULT 0.0,
+  api_score_director double precision DEFAULT 0.0,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT research_awards_pkey PRIMARY KEY (id),
+  CONSTRAINT research_awards_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.research_guidance (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -284,7 +372,12 @@ CREATE TABLE public.research_guidance (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT research_guidance_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT research_guidance_pkey PRIMARY KEY (id),
+  CONSTRAINT research_guidance_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.research_projects (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -299,7 +392,12 @@ CREATE TABLE public.research_projects (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT research_projects_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT research_projects_pkey PRIMARY KEY (id),
+  CONSTRAINT research_projects_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.research_proposals (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -312,7 +410,12 @@ CREATE TABLE public.research_proposals (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT research_proposals_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT research_proposals_pkey PRIMARY KEY (id),
+  CONSTRAINT research_proposals_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.school (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -329,7 +432,12 @@ CREATE TABLE public.self_development (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT self_development_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT self_development_pkey PRIMARY KEY (id),
+  CONSTRAINT self_development_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.student_feedback (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -341,7 +449,12 @@ CREATE TABLE public.student_feedback (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT student_feedback_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT student_feedback_pkey PRIMARY KEY (id),
+  CONSTRAINT student_feedback_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.teaching_process (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -357,7 +470,10 @@ CREATE TABLE public.teaching_process (
   status USER-DEFINED DEFAULT 'DRAFT'::appraisal_status,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT teaching_process_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  CONSTRAINT teaching_process_pkey PRIMARY KEY (id),
+  CONSTRAINT teaching_process_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.university_activities (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -368,5 +484,10 @@ CREATE TABLE public.university_activities (
   api_score_director double precision,
   department text,
   document text,
-  CONSTRAINT university_activities_pkey PRIMARY KEY (id)
+  faculty_id uuid,
+  sr_no integer,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT university_activities_pkey PRIMARY KEY (id),
+  CONSTRAINT university_activities_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );

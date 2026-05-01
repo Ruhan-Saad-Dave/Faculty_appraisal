@@ -9,7 +9,7 @@ class ResearchProposal(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
-    proposal_title = Column(Text, nullable=False)
+    proposal_title = Column(Text, name="title", nullable=False)
     duration = Column(String(50), nullable=False) # Project duration (e.g., "6 months", "1 year")
     funding_agency = Column(String(255), nullable=False)
     grant_amount = Column(Double, nullable=False)

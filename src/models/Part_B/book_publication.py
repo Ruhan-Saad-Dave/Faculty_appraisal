@@ -11,8 +11,8 @@ class BookPublication(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
-    title_and_pages = Column(String, index=True)
-    book_title_editor = Column(String)
+    title_and_pages = Column(String, name="title", index=True)
+    book_title_editor = Column(String, name="book_details")
     issn_isbn = Column(String)
     publisher_type = Column(String)
     co_authors_count = Column(Integer)

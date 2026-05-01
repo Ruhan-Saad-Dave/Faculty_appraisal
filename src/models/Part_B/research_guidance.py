@@ -11,8 +11,8 @@ class ResearchGuidance(Base):
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
     degree = Column(String(20), nullable=False) # ME / PhD
     student_name = Column(String(255), nullable=False)
-    submission_status = Column(String, nullable=False) # e.g., "Submitted", "Awarded"
-    award_date = Column(Date, nullable=True) # Date of award, if applicable
+    submission_status = Column(String, name="thesis_status", nullable=False) # e.g., "Submitted", "Awarded"
+    award_date = Column(Date, name="thesis_date", nullable=True) # Date of award, if applicable
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
     api_score_director = Column(Double, default=0.0)

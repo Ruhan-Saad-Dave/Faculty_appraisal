@@ -1,22 +1,3 @@
-DETAIL:  Key columns "faculty_id" and "id" are of incompatible types: integer and uuid.
-
-[SQL: 
-CREATE TABLE journal_publications (
-        id SERIAL NOT NULL, 
-        faculty_id INTEGER, 
-        sr_no INTEGER, 
-        title_with_page_nos TEXT, 
-        journal_details TEXT, 
-        issn_isbn_no VARCHAR(50), 
-        indexing indexingenum, 
-        api_score_faculty DOUBLE PRECISION, 
-        api_score_hod DOUBLE PRECISION, 
-        api_score_director DOUBLE PRECISION, 
-        department VARCHAR, 
-        document VARCHAR, 
-        PRIMARY KEY (id), 
-        FOREIGN KEY(faculty_id) REFERENCES faculty (id)
-)
-
-]
-(Background on this error at: https://sqlalche.me/e/20/f405)
+Error running SQL query
+Failed to run sql query: ERROR:  23502: null value in column "college_name" of relation "school" violates not-null constraint
+DETAIL:  Failing row contains (7c5899b5-515a-4aa4-9c13-ba2650273a20, null, School of Computer Science, Engineering & Applications, Engineering, Type 1).

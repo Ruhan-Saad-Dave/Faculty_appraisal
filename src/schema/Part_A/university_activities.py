@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class UniversityActivityBase(BaseModel):
     sr_no: Optional[int] = None
@@ -23,8 +24,8 @@ class UniversityActivityUpdateDirector(BaseModel):
     api_score_director: float
 
 class UniversityActivityResponse(UniversityActivityBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: float
     api_score_hod: float
     api_score_director: float

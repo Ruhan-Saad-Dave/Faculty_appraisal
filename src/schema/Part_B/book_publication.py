@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 class BookPublicationBase(BaseModel):
     title_and_pages: str = Field(..., description="Title of the chapter/book and page numbers")
@@ -32,8 +33,8 @@ class BookPublicationUpdateDirector(BaseModel):
     api_score_director: int = Field(..., description="API score given by Director")
 
 class BookPublicationResponse(BookPublicationBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: int
     api_score_hod: int
     api_score_director: int

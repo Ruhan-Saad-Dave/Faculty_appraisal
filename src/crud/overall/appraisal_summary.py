@@ -69,21 +69,25 @@ def get_appraisal_summary(db: Session, faculty_id: str) -> AppraisalSummaryRespo
     )
 
     # Part A Scores
-    # Teaching score is the sum of 5 sub-sections (Total 100 marks)
+    # Teaching score is the sum of 5 sub-sections (Total 100 marks) scaled to 25
     tp_score = crud_teaching_process.get_teaching_process_total_score(db, faculty_id)
     cf_score = crud_course_file.get_course_file_total_score(db, faculty_id)
     tm_score = crud_teaching_methods.get_teaching_methods_total_score(db, faculty_id)
     pj_score = crud_project.get_project_total_score(db, faculty_id)
     qe_score = crud_qualification.get_qualification_enhancement_total_score(db, faculty_id)
     
-    teaching_score = tp_score + cf_score + tm_score + pj_score + qe_score
+    raw_teaching_score = tp_score + cf_score + tm_score + pj_score + qe_score
+    teaching_score = min(raw_teaching_score, 100.0) * 0.25 # Scale to 25
 
-    feedback_score = crud_student_feedback.get_student_feedback_total_score(db, faculty_id)
-    dept_score = crud_dept_activity.get_departmental_activity_total_score(db, faculty_id)
-    university_score = crud_univ_activity.get_university_activity_total_score(db, faculty_id)
-    social_score = crud_social.get_social_contribution_total_score(db, faculty_id)
-    industry_score = crud_industry.get_industry_connect_total_score(db, faculty_id)
-    acr_score = crud_acr.get_acr_total_score(db, faculty_id)
+    feedback_avg = crud_student_feedback.get_student_feedback_total_score(db, faculty_id)
+    # Assuming feedback_avg is already the overall average (0-5)
+    feedback_score = feedback_avg * 17.0 # Scale to 85
+
+    dept_score = min(crud_dept_activity.get_departmental_activity_total_score(db, faculty_id), 20.0)
+    university_score = min(crud_univ_activity.get_university_activity_total_score(db, faculty_id), 30.0)
+    social_score = min(crud_social.get_social_contribution_total_score(db, faculty_id), 10.0)
+    industry_score = min(crud_industry.get_industry_connect_total_score(db, faculty_id), 5.0)
+    acr_score = min(crud_acr.get_acr_total_score(db, faculty_id), 25.0)
 
     part_a_total = (
         teaching_score + feedback_score + dept_score + university_score +

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
+from uuid import UUID
 
 # Base schema for common attributes
 class ResearchAwardBase(BaseModel):
@@ -32,8 +33,8 @@ class ResearchAwardUpdateDirector(BaseModel):
 
 # Schema for API response
 class ResearchAwardResponse(ResearchAwardBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     research_score_faculty: float
     research_score_hod: float
     research_score_director: float

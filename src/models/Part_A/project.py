@@ -10,11 +10,11 @@ class ProjectPartA(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id"))
     sr_no = Column(Integer, nullable=True)
-    project_type = Column(String(255), nullable=False)
+    project_type = Column(String(255), name="project", nullable=False)
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
     api_score_director = Column(Double, default=0.0)
     department = Column(String, nullable=True)
     document = Column(String, nullable=True)
 
-    faculty = relationship("Faculty")
+    faculty = relationship("Faculty", back_populates="projects_part_a")

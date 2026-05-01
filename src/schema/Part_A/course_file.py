@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class CourseFileBase(BaseModel):
     sr_no: Optional[int] = None
@@ -23,8 +24,8 @@ class CourseFileUpdateHOD(BaseModel):
     signature: Optional[bool] = None
 
 class CourseFileResponse(CourseFileBase):
-    id: str
-    faculty_id: str
+    id: UUID
+    faculty_id: UUID
     api_score_faculty: float
     api_score_hod: float
     signature: bool

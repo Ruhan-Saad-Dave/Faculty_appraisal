@@ -64,4 +64,9 @@ def delete_student_feedback(db: Session, id: str) -> bool:
 
 def get_student_feedback_total_score(db: Session, faculty_id: str) -> float:
     entries = get_student_feedback_by_faculty(db, faculty_id)
-    return sum([e.api_score_faculty for e in entries])
+    if not entries:
+        return 0.0
+    
+    # Calculate average for each entry and then average of averages
+    total_avg = sum([(e.first_feedback + e.second_feedback) / 2 for e in entries])
+    return total_avg / len(entries)

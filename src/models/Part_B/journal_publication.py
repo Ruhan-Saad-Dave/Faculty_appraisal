@@ -18,9 +18,9 @@ class JournalPublication(Base):
     faculty_id = Column(UUID(as_uuid=True), ForeignKey("faculty.id")) 
 
     sr_no = Column(Integer, index=True)
-    title_with_page_nos = Column(Text)
+    title_with_page_nos = Column(Text, name="title")
     journal_details = Column(Text)
-    issn_isbn_no = Column(String(50))
+    issn_isbn = Column(String(50), name="issn_isbn_no")
     indexing = Column(Enum(IndexingEnum), default=IndexingEnum.SCOPUS)
     api_score_faculty = Column(Double, default=0.0)
     api_score_hod = Column(Double, default=0.0)
@@ -28,5 +28,5 @@ class JournalPublication(Base):
     department = Column(String, nullable=True)
     document = Column(String, nullable=True)
 
-    # Relationship to Faculty (assuming a Faculty model will be created later)
-    # faculty = relationship("Faculty", back_populates="journal_publications")
+    # Relationship to Faculty
+    faculty = relationship("Faculty", back_populates="journal_publications")

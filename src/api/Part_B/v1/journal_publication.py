@@ -40,11 +40,12 @@ async def create_journal_publication(
         sr_no=sr_no,
         title_with_page_nos=title_with_page_nos,
         journal_details=journal_details,
-        issn_isbn_no=issn_isbn_no,
+        issn_isbn=issn_isbn_no,
         indexing=indexing,
         department=department,
         document=document_path
     )
+
     
     return crud_journal_publication.create_journal_publication(db=db, publication=publication, faculty_id=current_user.id)
 

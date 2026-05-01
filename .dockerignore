@@ -1,34 +1,28 @@
-# Include any files or directories that you don't want to be copied to your
-# container here (e.g., local build artifacts, temporary files, etc.).
-#
-# For more help, visit the .dockerignore file reference guide at
-# https://docs.docker.com/go/build-context-dockerignore/
-
-**/.DS_Store
-**/__pycache__
-**/.venv
-**/.classpath
-**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/bin
-**/charts
-**/docker-compose*
-**/compose.y*ml
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-LICENSE
+# .dockerignore - Files to exclude from GCP Production Deployment
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+tests/
+migrations/
+scripts/
+Docs/*.docx
+Docs/*.pdf
+Docs/supabase_migration_plan.md
+Docs/testing_guide.md
+references/
+.env
+.env.example
+.python-version
+output.txt
+PART-A.pdf
+uv.lock (optional, but keep for exact builds)
 README.md
+README.Docker.md
+schema.txt
+tables.txt
+*.docx
+*.pdf
