@@ -1,0 +1,50 @@
+# CI/CD Setup Guide: GitHub Actions to GCP Cloud Run
+
+This guide explains how to activate the automated deployment pipeline for the Faculty Appraisal Backend.
+
+---
+
+## 1. GitHub Secrets Configuration
+The pipeline is already code-complete, but it requires sensitive credentials stored in GitHub to run.
+
+### Steps:
+1. Open your repository on GitHub.
+2. Go to **Settings** > **Secrets and variables** > **Actions**.
+3. Click **New repository secret** and add the following 6 secrets:
+
+| Secret Name | Value Example / Description |
+| :--- | :--- |
+| `GCP_PROJECT_ID` | `your-project-id-123` |
+| `GCP_REGION` | `us-central1` (or your preferred region) |
+| `GCP_SA_KEY` | Paste the ENTIRE JSON content of your GCP Service Account Key file. |
+| `DATABASE_URL` | `postgresql://postgres.[ID]:[PWD]@aws-0...` |
+| `SUPABASE_URL` | `https://[ID].supabase.co` |
+| `SUPABASE_ANON_KEY` | Your project's public 'anon' key. |
+
+---
+
+## 2. GCP Service Account Permissions
+The Service Account used in `GCP_SA_KEY` must have these roles assigned in the Google Cloud Console (IAM & Admin):
+
+1. **Artifact Registry Writer**: To upload Docker images.
+2. **Cloud Run Developer**: To create/update the Cloud Run service.
+3. **Service Account User**: To act as the service account identity during deployment.
+
+---
+
+## 3. One-Time Setup in GCP
+Before the first run, ensure the following are created in your GCP project:
+1. **Artifact Registry Repository**:
+   - Name: `faculty-appraisal-repo`
+   - Format: `Docker`
+   - Region: Must match your `GCP_REGION` secret.
+
+---
+
+## 4. How it Works
+Every time you `git push` to the `main` branch:
+1. GitHub triggers the workflow.
+2. It builds a production Docker image using the `Dockerfile`.
+3. It pushes the image to Artifact Registry with a unique tag (the commit hash).
+4. It tells Cloud Run to update the service with this new image.
+5. Your changes are live in minutes!
