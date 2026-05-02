@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.setup.database import engine, Base
 from src.setup.dependencies import CurrentUser
 
@@ -43,6 +44,14 @@ app = FastAPI(
     title="Faculty Appraisal API",
     description="API for managing faculty appraisal data.",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this in production to specific domains
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register Part B Endpoints

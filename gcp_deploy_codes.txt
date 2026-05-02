@@ -2,6 +2,8 @@ cd Faculty_appraisal
 
 git pull
 
+export PROJECT_ID=facultyappraisal-495011
+
 gcloud builds submit --tag us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fastapi-backend .
 
 gcloud run deploy fastapi-backend \
