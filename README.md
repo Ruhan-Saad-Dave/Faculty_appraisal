@@ -3,9 +3,9 @@
 A high-performance FastAPI backend designed for institutional faculty appraisals across 8 schools. Featuring a multi-level hierarchical reporting system, dynamic form handling, and Supabase integration.
 
 ## 🚀 Key Features
-- **Hierarchical Access Control:** Strict VC > Dean > Director > HOD > Faculty authorization logic.
+- **Hierarchical Access Control:** Strict VC > Dean > Director > HOD > Faculty authorization logic, tailored for institutional hierarchy (e.g., HODs only in specific schools).
 - **Horizontal Data Isolation:** Departments and Schools are strictly isolated to prevent data leaks.
-- **Dynamic Form Support:** Handles three distinct appraisal form types (Standard, Media, Arts/Design).
+- **Dynamic Form Support:** Handles three distinct appraisal form types (Standard, Media, Arts/Design) including school-specific categories like Popular Writings for SOMCS.
 - **Submission Tracking:** Real-time dashboard for authorities to monitor appraisal progress.
 - **Production Hardened:** Dockerized with `uv`, optimized for GCP hosting, and non-root security.
 
@@ -35,6 +35,7 @@ A high-performance FastAPI backend designed for institutional faculty appraisals
     Open your Supabase SQL Editor and run the scripts in order:
     - `migrations/phase1_hierarchy_setup.sql` (Creates Schools and Tracking)
     - `migrations/v2_schema_alignment.sql` (Fixes columns and names)
+    - `migrations/v3_school_specific_updates.sql` (Adds Popular Writings and initializes 8 Schools)
 
 3.  **Run Locally:**
     ```bash

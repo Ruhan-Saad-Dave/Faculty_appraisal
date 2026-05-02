@@ -37,6 +37,7 @@ class Faculty(Base):
     product_developments = relationship("ProductDevelopment", back_populates="faculty")
     self_development_fdp_entries = relationship("SelfDevelopmentFDP", back_populates="faculty")
     industrial_trainings = relationship("IndustrialTraining", back_populates="faculty")
+    popular_writings = relationship("PopularWriting", back_populates="faculty")
 
     # Part A Relationships
     teaching_processes = relationship("TeachingProcess", back_populates="faculty")

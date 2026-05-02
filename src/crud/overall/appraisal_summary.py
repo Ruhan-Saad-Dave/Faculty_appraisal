@@ -14,6 +14,7 @@ from ...crud.Part_B import (
     product_development as crud_product_development,
     self_development_fdp as crud_self_development_fdp,
     industrial_training as crud_industrial_training,
+    popular_writings as crud_popular_writings,
 )
 from ...crud.Part_A import (
     teaching_process as crud_teaching_process,
@@ -45,11 +46,13 @@ def get_appraisal_summary(db: Session, faculty_id: str) -> AppraisalSummaryRespo
     product_score = crud_product_development.get_product_developments_total_score(db, faculty_id)
     self_development_score = crud_self_development_fdp.get_self_development_fdp_total_score(db, faculty_id)
     industrial_training_score = crud_industrial_training.get_industrial_trainings_total_score(db, faculty_id)
+    popular_writing_score = crud_popular_writings.get_popular_writings_total_score(db, faculty_id)
 
     part_b_total = (
         journal_score + book_score + pedagogy_score + guidance_score +
         project_score + ipr_score + award_score + conference_score +
-        proposal_score + product_score + self_development_score + industrial_training_score
+        proposal_score + product_score + self_development_score + 
+        industrial_training_score + popular_writing_score
     )
 
     part_b_summary = PartBSummary(
@@ -65,6 +68,7 @@ def get_appraisal_summary(db: Session, faculty_id: str) -> AppraisalSummaryRespo
         product_score=product_score,
         self_development_score=self_development_score,
         industrial_training_score=industrial_training_score,
+        popular_writing_score=popular_writing_score,
         part_b_total=part_b_total,
     )
 

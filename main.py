@@ -12,7 +12,7 @@ from src.models.Part_B import (
     Faculty, JournalPublication, BookPublication, ICTPedagogy,
     ResearchGuidance, ResearchProject, IPR, ResearchAward,
     ConferencePaper, ResearchProposal, ProductDevelopment,
-    SelfDevelopmentFDP, IndustrialTraining
+    SelfDevelopmentFDP, IndustrialTraining, PopularWriting
 )
 from src.models.overall.remarks import (
     AppraisalRemarks, HODRemarks, DirectorRemarks, DeanRemarks, FinalApproval
@@ -26,7 +26,7 @@ from src.api.Part_B.v1 import (
     journal_publication, book_publication, ict_pedagogy,
     research_guidance, research_project, ipr, research_award,
     conference_paper, research_proposal, product_development,
-    self_development_fdp, industrial_training
+    self_development_fdp, industrial_training, popular_writings
 )
 from src.api.Part_A.v1 import (
     teaching_process, course_file, teaching_methods,
@@ -58,6 +58,7 @@ app.include_router(research_proposal.router, prefix="/api/v1/part-b", tags=["Res
 app.include_router(product_development.router, prefix="/api/v1/part-b", tags=["Product Developments"])
 app.include_router(self_development_fdp.router, prefix="/api/v1/part-b", tags=["Self-Development FDP"])
 app.include_router(industrial_training.router, prefix="/api/v1/part-b", tags=["Industrial Trainings"])
+app.include_router(popular_writings.router, prefix="/api/v1/part-b", tags=["Popular Writings"])
 
 # Register Part A Endpoints
 app.include_router(teaching_process.router, prefix="/api/v1/part-a", tags=["Part A - Teaching Process"])

@@ -10,3 +10,4 @@ from .research_proposal import *
 from .product_development import *
 from .self_development_fdp import *
 from .industrial_training import *
+from .popular_writings import *

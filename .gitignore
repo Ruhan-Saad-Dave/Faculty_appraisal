@@ -2,6 +2,10 @@ __pycache__/
 -p/ 
 .venv/
 skills/
+migrations/
+
+
 
 gemini.md
 .env
+api_docs.zip

@@ -25,6 +25,7 @@ class PartBSummary(BaseModel):
     product_score: float = 0.0
     self_development_score: float = 0.0
     industrial_training_score: float = 0.0
+    popular_writing_score: float = 0.0
     part_b_total: float = 0.0 # out of 375
 
 class AppraisalSummaryResponse(BaseModel):

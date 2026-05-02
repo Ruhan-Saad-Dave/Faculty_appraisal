@@ -179,6 +179,7 @@ CREATE TABLE public.faculty (
   experience integer,
   phone character varying,
   academic_year character varying,
+  user_id uuid UNIQUE,
   CONSTRAINT faculty_pkey PRIMARY KEY (id),
   CONSTRAINT faculty_school_id_fkey FOREIGN KEY (school_id) REFERENCES public.school(id)
 );
@@ -292,6 +293,22 @@ CREATE TABLE public.ipr (
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT ipr_pkey PRIMARY KEY (id),
   CONSTRAINT ipr_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
+);
+CREATE TABLE public.popular_writings (
+  id uuid NOT NULL,
+  faculty_id uuid,
+  sr_no integer,
+  title text NOT NULL,
+  writing_type character varying NOT NULL,
+  publisher_agency character varying,
+  date date NOT NULL,
+  api_score_faculty double precision,
+  api_score_hod double precision,
+  api_score_director double precision,
+  department character varying,
+  document character varying,
+  CONSTRAINT popular_writings_pkey PRIMARY KEY (id),
+  CONSTRAINT popular_writings_faculty_id_fkey FOREIGN KEY (faculty_id) REFERENCES public.faculty(id)
 );
 CREATE TABLE public.products_developed (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),

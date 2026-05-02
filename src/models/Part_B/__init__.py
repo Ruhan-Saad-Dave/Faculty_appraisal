@@ -11,3 +11,4 @@ from .research_proposal import ResearchProposal
 from .product_development import ProductDevelopment
 from .self_development_fdp import SelfDevelopmentFDP
 from .industrial_training import IndustrialTraining
+from .popular_writings import PopularWriting

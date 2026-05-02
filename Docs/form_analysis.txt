@@ -1,0 +1,68 @@
+Based on the analysis of the three faculty appraisal forms, here are the commonalities and differences across the schools:
+
+### **1. Common Tables Across All Three Forms**
+The following tables are standard in all forms (MCS, SOD/SOAA, and SoCM/SoEMR/SoBB/SoCE):
+
+*   **Teaching Process**: Lectures, Tutorials, Practicals, and Projects.
+*   **Course File**: Includes indices approved by IQAC.
+*   **Innovative Teaching-Learning**: Use of LMS, blended learning, and innovative methodologies.
+*   **Project**: Guided projects, industrial collaboration, and awards.
+*   **Qualification Enhancement**: Higher qualifications or certifications achieved.
+*   **Students’ Feedback**: Course-wise feedback scores.
+*   **Departmental / School Activities**: General departmental involvement.
+*   **University Level Activities**: Engagement at the university level.
+*   **Contribution to Society**: Social activities such as NSS, Yoga, or blood donation.
+*   **Annual Confidential Report (ACR)**: Assessment of punctuality, motivation, and target-based work.
+*   **Research & Academic Contributions**:
+    *   **Published Papers in Journals**.
+    *   **Articles / Chapters Published in Books**.
+    *   **Creation of ICT Mediated Pedagogy**.
+    *   **Research Guidance**: ME/PhD students.
+    *   **Research Awards/ Fellowships**.
+    *   **Invited Lectures / Resource Person**: Participation in seminars/conferences.
+    *   **Research Proposals**: Submitted proposals for funding.
+    *   **Self-Development**: Attending FDPs or training programs.
+    *   **Industrial Training**: Specific industry-based training sessions.
+
+---
+
+### **2. Tables Removed in Specific Schools**
+*   **Popular Writings, Film, and Documentary**: This table is present in **MCS** but is **removed** in **SOD/SOAA** and **SoCM, SoEMR, SoBB & SoCE**.
+*   **Product Developed and Used by Students**: This table is present in **MCS** and **SoCM/SoEMR/SoBB/SoCE** but is **removed** in **SOD/SOAA**.
+*   **Separate Internal/External Project Tables**: **SoCM/SoEMR/SoBB/SoCE** removed the individual tables for "Internal" and "External" research projects, opting for a combined format instead.
+
+---
+
+### **3. Tables Added in Specific Schools**
+The following tables are added to specific schools as noted:
+
+#### **Industry Connect Activity**
+*   **Added in**: **SOD/SOAA** and **SoCM/SoEMR/SoBB/SoCE**.
+*   **Column Names**:
+    *   Sr. No.
+    *   Name of the Industry
+    *   Details of activity
+    *   API Score (Faculty, HOD, Director)
+
+#### **IPR (Patent/ Copyrights/ Design/ Trademarks)**
+*   **Added in**: **SOD/SOAA** and **SoCM/SoEMR/SoBB/SoCE**.
+*   **Column Names**:
+    *   S. No.
+    *   Title
+    *   National / International
+    *   Date of Filing
+    *   Status: Published/ Granted as on date
+    *   Patent file No.
+    *   Research Score (Faculty, HOD, Director)
+
+#### **Combined Research & Consultancy Projects**
+*   **Added in**: **SoCM/SoEMR/SoBB/SoCE** (replacing the separate internal/external tables).
+*   **Column Names**:
+    *   S. No.
+    *   Title of Research Project
+    *   Funding Agency
+    *   Date of Sanction
+    *   Grant / Amount Mobilized (Rs. Lakhs)
+    *   Whether you are the PI/ Co- PI / Consultant
+    *   Status Ongoing / Completed
+    *   API Score (Faculty, HOD, Director)
