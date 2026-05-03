@@ -40,6 +40,15 @@ from src.api.overall.v1 import appraisal_summary, remarks, finalization, dashboa
 # Create tables
 Base.metadata.create_all(bind=engine)
 
+origins = [
+    "http://localhost:8080",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://localhost:5500",
+    "http://localhost:4200",
+]
+
 app = FastAPI(
     title="Faculty Appraisal API",
     description="API for managing faculty appraisal data.",
@@ -48,7 +57,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this in production to specific domains
+    allow_origins=origins,  # Adjust this in production to specific domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
