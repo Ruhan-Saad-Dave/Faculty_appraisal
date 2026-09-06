@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
+from sqlalchemy.orm.attributes import flag_modified
 from src.models.non_teaching import NonTeachingAppraisal, NonTeachingPartAItem, NonTeachingPartBRating
 from typing import List, Optional, Any
 from uuid import UUID
@@ -70,6 +71,8 @@ async def create_or_update_non_teaching_appraisal(db: AsyncSession, data: dict) 
             for key, value in data.items():
                 if hasattr(db_appr, key):
                     setattr(db_appr, key, value)
+            if 'payload' in data:
+                flag_modified(db_appr, 'payload')
         else:
             # Filter data for only valid model fields
             valid_data = {k: v for k, v in data.items() if hasattr(NonTeachingAppraisal, k)}
@@ -142,6 +145,24 @@ async def update_reviewer_marks(db: AsyncSession, email: str, year: str, payload
             existing = res.scalar_one_or_none()
             if existing:
                 setattr(existing, part_a_db_col, marks)
+            else:
+                title, max_marks = _PART_A_SECTIONS.get(item_key, (item_key, 10))
+                try:
+                    self_marks = float(section['marks']) if section.get('marks') is not None and str(section.get('marks')).strip() != '' else None
+                except (ValueError, TypeError):
+                    self_marks = None
+                details = section.get('text')
+                new_item = NonTeachingPartAItem(
+                    staff_email=email,
+                    academic_year=year,
+                    item_key=item_key,
+                    title=title,
+                    max_marks=max_marks,
+                    details=details,
+                    self_marks=self_marks,
+                    **{part_a_db_col: marks}
+                )
+                db.add(new_item)
 
     # --- Part B ---
     if part_b_suffix and part_b_db_col:

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.attributes import flag_modified
 from src.setup.database import get_db
 from src.setup.dependencies import CurrentUser
 from src.models.non_teaching import (
@@ -334,7 +335,14 @@ async def review_non_teaching(email: str, data: Dict[str, Any], current_user: Cu
         "vc":                ("vc_total",        "VC Approved",          "vc_reviewed_at"),
     }
 
-    primary_role = next((r for r in current_user.roles if r in role_config), None)
+    requested_role = (data.get('reviewer_role') or data.get('role') or '').strip().lower()
+    if requested_role in role_config and (requested_role in current_user.roles or "admin" in current_user.roles):
+        primary_role = requested_role
+    elif "registrar" in current_user.roles and (appr.status == "Pending Registrar Review" or target.reports_to_registrar):
+        primary_role = "registrar"
+    else:
+        primary_role = next((r for r in current_user.roles if r in role_config), None)
+
     if not primary_role and "admin" not in current_user.roles:
         raise HTTPException(status_code=403, detail="Invalid reviewer role")
     if "admin" in current_user.roles and not primary_role:
@@ -359,6 +367,7 @@ async def review_non_teaching(email: str, data: Dict[str, Any], current_user: Cu
 
     if 'payload' in data:
         appr.payload = data['payload']
+        flag_modified(appr, 'payload')
     if 'total_score' in data:
         setattr(appr, field, data['total_score'])
 

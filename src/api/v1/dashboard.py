@@ -522,6 +522,7 @@ from datetime import datetime
 
 class PartDReleaseRequest(BaseModel):
     registrar_part_d_score: float
+    remarks: Optional[str] = None
     academic_year: Optional[str] = None
 
 @router.get("/part-d-queue", response_model=List[dict])
@@ -557,6 +558,7 @@ async def get_part_d_queue(
     # Batch query snapshots to avoid N+1 queries
     faculty_emails = [decl.faculty_email for decl, _ in rows]
     snapshots_by_email = {}
+    reg_reviews_by_email = {}
     if faculty_emails:
         snap_res = await db.execute(
             select(AppraisalSnapshot).where(
@@ -566,10 +568,20 @@ async def get_part_d_queue(
         )
         snapshots_by_email = {s.faculty_email: s for s in snap_res.scalars().all()}
 
+        rev_res = await db.execute(
+            select(AppraisalReview).where(
+                AppraisalReview.faculty_email.in_(faculty_emails),
+                AppraisalReview.academic_year == academic_year,
+                AppraisalReview.reviewer_role == "registrar",
+            )
+        )
+        reg_reviews_by_email = {r.faculty_email: r for r in rev_res.scalars().all()}
+
     response_data = []
     for decl, profile in rows:
         snapshot = snapshots_by_email.get(decl.faculty_email)
         form = _extract_snapshot_form(snapshot)
+        reg_rev = reg_reviews_by_email.get(decl.faculty_email)
         
         response_data.append({
             "id": str(decl.id),
@@ -582,7 +594,11 @@ async def get_part_d_queue(
             "part_d_status": decl.part_d_status,
             "grand_total": float(decl.grand_total) if decl.grand_total is not None else 0.0,
             "submitted_at": decl.submitted_at.isoformat() if decl.submitted_at else None,
-            "leave_management": form.get("leaveManagement") or []
+            "leave_management": form.get("leaveManagement") or [],
+            "has_registrar_part_d_score": reg_rev is not None and (reg_rev.registrar_part_d_score is not None or reg_rev.part_d_score is not None),
+            "registrar_part_d_score": float(reg_rev.registrar_part_d_score if reg_rev.registrar_part_d_score is not None else reg_rev.part_d_score) if reg_rev and (reg_rev.registrar_part_d_score is not None or reg_rev.part_d_score is not None) else None,
+            "registrar_part_d_remarks": reg_rev.remarks if reg_rev else None,
+            "registrar_part_d_reviewed_at": reg_rev.reviewed_at.isoformat() if reg_rev and reg_rev.reviewed_at else None,
         })
 
     return response_data
@@ -638,23 +654,28 @@ async def release_part_d(
             id=uuid.uuid4(),
             faculty_email=faculty_email,
             academic_year=academic_year,
+            reviewer_email=current_user.email,
             reviewer_role="registrar",
             status="Reviewed",
             part_a_score=0,
             part_b_score=0,
             part_c_score=0,
             part_d_score=part_d_value,
-            total_score=part_d_value
+            total_score=part_d_value,
+            remarks=body.remarks,
+            registrar_part_d_score=part_d_value,
+            reviewed_at=datetime.utcnow()
         )
         db.add(rev)
     else:
         rev.part_d_score = part_d_value
         rev.total_score = part_d_value
         rev.status = "Reviewed"
-
-    rev.reviewer_email = current_user.email
-    rev.registrar_part_d_score = part_d_value
-    rev.reviewed_at = datetime.utcnow()
+        if body.remarks is not None:
+            rev.remarks = body.remarks
+        rev.reviewer_email = current_user.email
+        rev.registrar_part_d_score = part_d_value
+        rev.reviewed_at = datetime.utcnow()
 
     # Update Declaration
     decl.part_d_status = "released"
