@@ -7,6 +7,7 @@ class FacultyProfileBase(BaseModel):
     email: EmailStr
     full_name: str
     employee_id: Optional[str] = None
+    keycloak_sub: Optional[str] = None
     qualification: Optional[str] = None
     designation: Optional[str] = None
     department: Optional[str] = None
@@ -24,6 +25,7 @@ class FacultyProfileCreate(FacultyProfileBase):
 class FacultyProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     employee_id: Optional[str] = None
+    keycloak_sub: Optional[str] = None
     qualification: Optional[str] = None
     designation: Optional[str] = None
     department: Optional[str] = None

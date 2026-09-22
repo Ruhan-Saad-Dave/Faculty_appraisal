@@ -33,6 +33,7 @@ create table public.faculty_profiles (
   email text not null unique,
   password_hash text,                          -- bcrypt hash; set on registration
   employee_id text,
+  keycloak_sub text unique default null,       -- Keycloak OIDC sub claim
   full_name text not null,
   qualification text,
   designation text,

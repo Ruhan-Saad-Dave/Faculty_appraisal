@@ -52,6 +52,16 @@ These have already been applied to the live database. Editing them will not chan
 | 028 | `028_add_activity_logs.sql` | Created activity_logs audit table |
 | 029 | `029_backfill_reporting_officer_reports_to_registrar.sql` | Backfilled reporting_officer profiles to reports_to_registrar = true |
 | 030 | `030_add_pending_vc_review_to_nt_status.sql` | Added 'Pending VC Review' to non_teaching_appraisals status check |
+| 031 | `031_create_schools_table.sql` | Created schools configuration table |
+| 032 | `032_add_school_form_variants.sql` | Added form variant columns to schools table |
+| 033 | `033_add_feedback_attachments.sql` | Added file attachment support to feedback table |
+| 034 | `034_fix_cisr_school_configuration.sql` | Configured CISR school record |
+| 035 | `035_fix_duplicate_schools_and_add_unique_constraints.sql` | Cleaned duplicate schools and added unique constraints |
+| 036 | `036_form_builder_and_custom_sections.sql` | Form builder tables and custom section definitions |
+| 037 | `037_add_part_guideline_to_form_section_definitions.sql` | Added part_guideline column to section definitions |
+| 038 | `038_add_registrar_part_to_form_section_definitions.sql` | Added registrar_part column to section definitions |
+| 039 | `039_add_family_label_to_form_section_definitions.sql` | Added family_label column to section definitions |
+| 040 | `040_add_keycloak_sub_to_faculty_profiles.sql` | Added keycloak_sub column and unique index to faculty_profiles for SSO |
 
 `seed_admin_user.sql` is a one-time setup file, not a schema migration. Run it once on a fresh install to create the first admin account.
 

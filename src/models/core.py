@@ -11,6 +11,7 @@ class FacultyProfile(Base):
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String)
     employee_id = Column(String)
+    keycloak_sub = Column(String, unique=True, nullable=True, index=True)
     full_name = Column(String, nullable=False)
     qualification = Column(String)
     designation = Column(String)
@@ -27,6 +28,12 @@ class FacultyProfile(Base):
     registrar_email = Column(String, nullable=True)
     avatar = Column(String)
     profile_picture_url = Column(String, nullable=True)
+
+    @validates("keycloak_sub")
+    def validate_keycloak_sub(self, key, value):
+        if value:
+            return value.strip()
+        return value
 
     @validates("school")
     def validate_school(self, key, value):

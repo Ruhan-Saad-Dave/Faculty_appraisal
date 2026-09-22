@@ -33,6 +33,75 @@ async def get_faculty_by_email(db: AsyncSession, email: str) -> Optional[Faculty
         logger.error(traceback.format_exc())
         raise
 
+async def get_faculty_by_keycloak_sub(db: AsyncSession, keycloak_sub: str) -> Optional[FacultyProfile]:
+    """
+    Look up a FacultyProfile by unique keycloak_sub OIDC claim.
+    """
+    if not keycloak_sub or not str(keycloak_sub).strip():
+        return None
+    try:
+        clean_sub = str(keycloak_sub).strip()
+        result = await db.execute(
+            select(FacultyProfile)
+            .where(FacultyProfile.keycloak_sub == clean_sub)
+            .order_by(
+                FacultyProfile.is_active.desc(),
+                FacultyProfile.is_verified.desc(),
+                FacultyProfile.created_at.desc()
+            )
+        )
+        profiles = result.scalars().all()
+        if not profiles:
+            return None
+        if len(profiles) > 1:
+            logger.warning(f"Multiple faculty profiles found for keycloak_sub {keycloak_sub}. Returning the most relevant active/verified one.")
+        return profiles[0]
+    except Exception as e:
+        logger.error(f"Error fetching faculty by keycloak_sub {keycloak_sub}: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
+
+async def resolve_and_link_keycloak_faculty(
+    db: AsyncSession,
+    keycloak_sub: str,
+    email: Optional[str] = None
+) -> Optional[FacultyProfile]:
+    """
+    SSO User Resolution:
+    1. Lookup by keycloak_sub.
+    2. If not linked yet, lookup by verified institutional email.
+    3. If exactly one active/local account matches, save the Keycloak sub.
+    4. Future logins resolve by keycloak_sub.
+    """
+    if not keycloak_sub or not str(keycloak_sub).strip():
+        return None
+
+    clean_sub = str(keycloak_sub).strip()
+
+    # 1. Lookup by keycloak_sub
+    profile = await get_faculty_by_keycloak_sub(db, clean_sub)
+    if profile:
+        return profile
+
+    # 2. If not linked yet and email is provided, lookup by verified institutional email
+    if email and str(email).strip():
+        clean_email = str(email).strip().lower()
+        profile = await get_faculty_by_email(db, clean_email)
+        if profile and profile.is_active:
+            # 3. Save keycloak_sub to link the account
+            try:
+                profile.keycloak_sub = clean_sub
+                await db.commit()
+                await db.refresh(profile)
+                logger.info(f"Successfully linked Keycloak sub '{clean_sub}' to profile email '{clean_email}' (id: {profile.id})")
+                return profile
+            except Exception as e:
+                await db.rollback()
+                logger.error(f"Error linking keycloak_sub {clean_sub} to email {clean_email}: {str(e)}")
+                raise
+
+    return None
+
 async def create_faculty_profile(db: AsyncSession, profile_in: FacultyProfileCreate) -> FacultyProfile:
     db_profile = FacultyProfile(
         **profile_in.model_dump(exclude={'password'}),
