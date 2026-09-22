@@ -104,3 +104,124 @@ async def test_resolve_keycloak_faculty_inactive_account_denied(db):
         db, keycloak_sub="inactive-sub-000", email="inactive_sso@test.com"
     )
     assert resolved is None
+
+
+# ---------------------------------------------------------------------------
+# API Integration Tests for SSO Bearer Tokens (Milestone 8)
+# ---------------------------------------------------------------------------
+
+import jwt
+import os
+from datetime import datetime, timedelta
+
+TEST_CENTRAL_SECRET = "test-central-sso-secret-key-123456789"
+
+
+def _make_central_token(
+    sub: str = "keycloak-sub-test-1",
+    email: str = "api_sso_user@test.com",
+    expired: bool = False,
+    extra: dict = None,
+) -> str:
+    """Helper to generate a central JWT for testing."""
+    os.environ["CENTRAL_JWT_SECRET"] = TEST_CENTRAL_SECRET
+    os.environ["CENTRAL_ALGORITHM"] = "HS256"
+
+    payload = {
+        "sub": sub,
+        "email": email,
+        "exp": datetime.utcnow() + (timedelta(seconds=-10) if expired else timedelta(hours=1)),
+        "iat": datetime.utcnow(),
+    }
+    if extra:
+        payload.update(extra)
+    return jwt.encode(payload, TEST_CENTRAL_SECRET, algorithm="HS256")
+
+
+@pytest.mark.asyncio
+async def test_sso_api_first_login_links_and_succeeds(client):
+    # 1. Seed user with institutional email and NO keycloak_sub
+    email = "first_sso_login@test.com"
+    sub = "kc-sub-first-login-001"
+    await _seed_user(email, keycloak_sub=None)
+
+    # 2. Call GET /auth/me with valid central SSO bearer token
+    token = _make_central_token(sub=sub, email=email)
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["email"] == email
+    assert body["appraisal_role"] == "faculty"
+
+    # 3. Verify keycloak_sub was persisted in DB
+    async with AsyncSessionLocal() as db:
+        profile = await get_faculty_by_email(db, email)
+        assert profile.keycloak_sub == sub
+
+
+@pytest.mark.asyncio
+async def test_sso_api_subsequent_login_by_sub(client):
+    # Seed user already linked to a keycloak_sub
+    email = "linked_sso_user@test.com"
+    sub = "kc-sub-linked-002"
+    await _seed_user(email, keycloak_sub=sub)
+
+    # Call with matching sub
+    token = _make_central_token(sub=sub, email=email)
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert resp.status_code == 200
+    assert resp.json()["email"] == email
+
+
+@pytest.mark.asyncio
+async def test_sso_api_unassigned_user_returns_403(client):
+    # Token for user who has NO FacultyProfile in local DB
+    token = _make_central_token(sub="kc-sub-unknown-999", email="stranger@test.com")
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert resp.status_code == 403
+    assert "no Faculty Appraisal account is assigned" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_sso_api_inactive_user_returns_403(client):
+    # User exists but is_active=False
+    email = "disabled_user@test.com"
+    sub = "kc-sub-disabled-003"
+    await _seed_user(email, keycloak_sub=sub, is_active=False)
+
+    token = _make_central_token(sub=sub, email=email)
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert resp.status_code == 403
+    assert "inactive" in resp.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_sso_api_expired_token_returns_401(client):
+    email = "expired_token_user@test.com"
+    await _seed_user(email)
+
+    token = _make_central_token(email=email, expired=True)
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_sso_api_invalid_signature_returns_401(client):
+    email = "forged_token_user@test.com"
+    await _seed_user(email)
+
+    # Signed with wrong secret
+    forged_token = jwt.encode(
+        {"sub": "forged-sub", "email": email, "exp": datetime.utcnow() + timedelta(hours=1)},
+        "wrong-secret-key-xyz",
+        algorithm="HS256",
+    )
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {forged_token}"})
+
+    assert resp.status_code == 401
+

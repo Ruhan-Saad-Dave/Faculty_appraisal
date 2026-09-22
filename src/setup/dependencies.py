@@ -309,9 +309,12 @@ async def get_current_user(
         if payload.get("purpose"):
             raise HTTPException(status_code=401, detail="This token is not valid for API access.")
 
-        email = payload.get("email")
-        if not email:
-            raise HTTPException(status_code=401, detail="Token payload missing email.")
+        raw_email = payload.get("email") or payload.get("preferred_username")
+        email = str(raw_email).strip().lower() if raw_email else None
+        keycloak_sub = payload.get("sub")
+
+        if not email and not keycloak_sub:
+            raise HTTPException(status_code=401, detail="Token payload missing email and identity subject.")
 
         def _is_uuid(val):
             if not val:
@@ -324,7 +327,7 @@ async def get_current_user(
                 return False
 
         from src.models.core import School, RoleAssignment, Department
-        from src.crud.core import get_faculty_by_email
+        from src.crud.core import get_faculty_by_email, resolve_and_link_keycloak_faculty, get_faculty_by_keycloak_sub
 
         school_tracks_map = {}
         schools_res = await db.execute(select(School.code, School.track, School.default_form, School.form_variant))
@@ -347,11 +350,22 @@ async def get_current_user(
                 register_school_form_family(c, fam)
 
         if is_central:
-            profile = await get_faculty_by_email(db, email)
+            profile = None
+            if keycloak_sub:
+                profile = await resolve_and_link_keycloak_faculty(db, keycloak_sub=str(keycloak_sub), email=email)
+            elif email:
+                profile = await get_faculty_by_email(db, email)
+
             if not profile:
                 raise HTTPException(
                     status_code=403,
-                    detail="Authentication succeeded, but no profile was found for this user in Faculty Appraisal."
+                    detail="Authentication succeeded, but no Faculty Appraisal account is assigned to this university identity."
+                )
+
+            if not profile.is_active:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Account is inactive. Please contact administrator."
                 )
             
             # Populate User object from local DB record
