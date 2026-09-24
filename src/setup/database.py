@@ -411,6 +411,42 @@ async def run_auto_migrations():
                     )
                     await session.commit()
 
+            if "040_add_keycloak_sub_to_faculty_profiles.sql" in applied:
+                res_040 = await session.execute(text("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.columns 
+                        WHERE table_schema = 'public' 
+                        AND table_name = 'faculty_profiles' 
+                        AND column_name = 'keycloak_sub'
+                    );
+                """))
+                if not res_040.scalar():
+                    logger.warning("Migration 040 was marked applied but column 'keycloak_sub' is missing. Forcing re-run.")
+                    applied.discard("040_add_keycloak_sub_to_faculty_profiles.sql")
+                    await session.execute(
+                        text("DELETE FROM schema_migrations WHERE version = :version"),
+                        {"version": "040_add_keycloak_sub_to_faculty_profiles.sql"}
+                    )
+                    await session.commit()
+
+            if "039_add_family_label_to_form_section_definitions.sql" in applied:
+                res_039 = await session.execute(text("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.columns 
+                        WHERE table_schema = 'public' 
+                        AND table_name = 'form_section_definitions' 
+                        AND column_name = 'family_label'
+                    );
+                """))
+                if not res_039.scalar():
+                    logger.warning("Migration 039 was marked applied but column 'family_label' is missing. Forcing re-run.")
+                    applied.discard("039_add_family_label_to_form_section_definitions.sql")
+                    await session.execute(
+                        text("DELETE FROM schema_migrations WHERE version = :version"),
+                        {"version": "039_add_family_label_to_form_section_definitions.sql"}
+                    )
+                    await session.commit()
+
             if "038_add_registrar_part_to_form_section_definitions.sql" in applied:
                 res_038 = await session.execute(text("""
                     SELECT EXISTS (
@@ -426,6 +462,24 @@ async def run_auto_migrations():
                     await session.execute(
                         text("DELETE FROM schema_migrations WHERE version = :version"),
                         {"version": "038_add_registrar_part_to_form_section_definitions.sql"}
+                    )
+                    await session.commit()
+
+            if "037_add_part_guideline_to_form_section_definitions.sql" in applied:
+                res_037 = await session.execute(text("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.columns 
+                        WHERE table_schema = 'public' 
+                        AND table_name = 'form_section_definitions' 
+                        AND column_name = 'part_guideline'
+                    );
+                """))
+                if not res_037.scalar():
+                    logger.warning("Migration 037 was marked applied but column 'part_guideline' is missing. Forcing re-run.")
+                    applied.discard("037_add_part_guideline_to_form_section_definitions.sql")
+                    await session.execute(
+                        text("DELETE FROM schema_migrations WHERE version = :version"),
+                        {"version": "037_add_part_guideline_to_form_section_definitions.sql"}
                     )
                     await session.commit()
 
