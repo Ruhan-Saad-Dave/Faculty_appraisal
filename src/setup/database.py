@@ -19,12 +19,21 @@ else:
     load_dotenv(override=False)
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
-if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
+if SQLALCHEMY_DATABASE_URL:
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.strip().strip('"\'')
+
+if not SQLALCHEMY_DATABASE_URL:
+    raise ValueError(
+        "DATABASE_URL environment variable is missing or empty. "
+        "Please specify a valid connection string in your .env file or environment."
+    )
+
+if SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-elif SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+elif SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
 
-if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
     engine = create_async_engine(
         SQLALCHEMY_DATABASE_URL,
         pool_pre_ping=True
