@@ -61,10 +61,6 @@ ALLOWED_ORIGINS = [
     "http://localhost:5174",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "http://10.10.53.122:8000",
-    "http://10.10.53.122:3000",
-    "http://10.100.0.23:3000",
-    "http://10.100.0.23",
     "http://pbas.dypiu.ac.in",
     "https://pbas.dypiu.ac.in",
     "http://pbas.dypiu.ac.in:3000",
@@ -98,9 +94,15 @@ app.add_middleware(
 
 # SessionMiddleware is required by sqladmin for its /admin web UI login flow.
 _is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
+_session_secret = os.getenv("JWT_SECRET_KEY")
+if not _session_secret:
+    if _is_production:
+        raise RuntimeError("CRITICAL: JWT_SECRET_KEY environment variable must be set in production!")
+    _session_secret = "dev-insecure-session-secret"
+
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("JWT_SECRET_KEY", "fallback-secret-change-in-production"),
+    secret_key=_session_secret,
     https_only=_is_production,
 )
 
@@ -132,7 +134,7 @@ async def log_requests(request: Request, call_next):
             status_code=500,
             content={
                 "user_message": "An unexpected error occurred. Please try again or contact support.",
-                "detail": str(e),
+                "detail": "Internal server error",
                 "type": type(e).__name__,
                 "path": request.url.path,
             },
@@ -212,7 +214,7 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
         status_code=500,
         content={
             "user_message": "A database error occurred. Please try again or contact support.",
-            "detail": str(exc),
+            "detail": "Internal database error",
             "type": "SQLAlchemyError",
             "path": request.url.path,
         },
@@ -230,7 +232,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "user_message": "An unexpected error occurred. Please try again or contact support.",
-            "detail": str(exc),
+            "detail": "Internal server error",
             "type": type(exc).__name__,
             "path": request.url.path,
         },

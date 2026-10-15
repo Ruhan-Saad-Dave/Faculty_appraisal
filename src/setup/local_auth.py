@@ -9,7 +9,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Secret key to encode the JWT token
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-fallback-secret-key-change-in-production")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    if os.getenv("ENVIRONMENT", "development").lower() == "production":
+        raise RuntimeError("CRITICAL SECURITY ERROR: JWT_SECRET_KEY environment variable must be set in production!")
+    logger.warning("WARNING: JWT_SECRET_KEY is not set. Using fallback dev key. Do NOT use in production!")
+    SECRET_KEY = "insecure-dev-fallback-key-must-set-jwt-secret-in-env"
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days
 

@@ -30,9 +30,9 @@ class AdminAuth(AuthenticationBackend):
             )
             user = result.scalar_one_or_none()
 
-        if not user or not verify_password(password, user.password_hash):
+        if not user or not user.is_active or not verify_password(password, user.password_hash):
             return False
-        if user.appraisal_role != "admin":
+        if user.appraisal_role not in ("admin", "super_admin"):
             return False
 
         request.session.update({"admin_email": email})
@@ -167,7 +167,12 @@ class AnnouncementAdmin(ModelView, model=Announcement):
 def create_admin(app):
     if Admin is None:
         return None
-    auth_backend = AdminAuth(secret_key=os.getenv("JWT_SECRET_KEY", "fallback-secret"))
+    _secret = os.getenv("JWT_SECRET_KEY")
+    if not _secret:
+        if os.getenv("ENVIRONMENT", "development").lower() == "production":
+            raise RuntimeError("CRITICAL: JWT_SECRET_KEY must be set in production!")
+        _secret = "dev-insecure-admin-secret"
+    auth_backend = AdminAuth(secret_key=_secret)
     admin = Admin(
         app,
         engine,

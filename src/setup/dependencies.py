@@ -273,7 +273,7 @@ async def get_current_user(
     Supports centralized SSO tokens mapping to local database roles, with local JWT fallback.
     """
     if not authorization:
-        if os.getenv("ALLOW_MOCK_USER", "false").lower() == "true":
+        if os.getenv("ALLOW_MOCK_USER", "false").lower() == "true" and (os.getenv("TESTING") == "True" or os.getenv("ENVIRONMENT") == "test"):
             return User(
                 id="00000000-0000-0000-0000-000000000001",
                 email="admin@example.com",
@@ -414,57 +414,67 @@ async def get_current_user(
                 school_tracks=school_tracks_map,
             )
         else:
-            role = payload.get("appraisal_role") or payload.get("role", "faculty")
-            roles = [role] if isinstance(role, str) else role
-            
-            dept_names = []
-            assigned_schools = []
-            if "hod" in roles or "director" in roles:
+            profile = None
+            if email:
                 profile = await get_faculty_by_email(db, email)
-                if profile:
-                    if "hod" in roles:
-                        asg_res = await db.execute(
-                            select(RoleAssignment.scope_id).where(
-                                RoleAssignment.user_id == UUID(str(profile.id)),
-                                RoleAssignment.role_type == "HOD",
-                                RoleAssignment.status == "active",
-                            )
-                        )
-                        dept_ids = [UUID(sid) for sid in asg_res.scalars().all() if _is_uuid(sid)]
-                        if dept_ids:
-                            dept_res = await db.execute(
-                                select(Department.name).where(
-                                    Department.id.in_(dept_ids),
-                                    Department.status == "active"
-                                )
-                            )
-                            dept_names = dept_res.scalars().all()
+            elif payload.get("sub") and _is_uuid(payload.get("sub")):
+                from src.models.core import FacultyProfile
+                p_res = await db.execute(select(FacultyProfile).where(FacultyProfile.id == UUID(str(payload.get("sub")))))
+                profile = p_res.scalar_one_or_none()
 
-                    if "director" in roles:
-                        asg_res = await db.execute(
-                            select(RoleAssignment.scope_id).where(
-                                RoleAssignment.user_id == UUID(str(profile.id)),
-                                RoleAssignment.role_type == "DIRECTOR",
-                                RoleAssignment.status == "active",
-                            )
+            if not profile:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Authentication succeeded, but user account was not found in the system."
+                )
+
+            if not profile.is_active:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Account is inactive. Please contact administrator."
+                )
+
+            # Canonical role is always loaded from database, never trusted blindly from token
+            roles = [profile.appraisal_role or "faculty"]
+
+            dept_names = []
+            if "hod" in roles:
+                asg_res = await db.execute(
+                    select(RoleAssignment.scope_id).where(
+                        RoleAssignment.user_id == UUID(str(profile.id)),
+                        RoleAssignment.role_type == "HOD",
+                        RoleAssignment.status == "active",
+                    )
+                )
+                dept_ids = [UUID(sid) for sid in asg_res.scalars().all() if _is_uuid(sid)]
+                if dept_ids:
+                    dept_res = await db.execute(
+                        select(Department.name).where(
+                            Department.id.in_(dept_ids),
+                            Department.status == "active"
                         )
-                        assigned_schools = [normalize_school(sid) for sid in asg_res.scalars().all() if sid]
-                        if not assigned_schools and profile.school:
-                            assigned_schools = [normalize_school(profile.school)]
-                else:
-                    if "director" in roles:
-                        raw_list = payload.get("assigned_schools") or payload.get("schools") or []
-                        if raw_list:
-                            assigned_schools = [normalize_school(s) for s in raw_list if s]
-                        elif payload.get("school"):
-                            assigned_schools = [normalize_school(payload.get("school"))]
+                    )
+                    dept_names = dept_res.scalars().all()
+
+            assigned_schools = []
+            if "director" in roles:
+                asg_res = await db.execute(
+                    select(RoleAssignment.scope_id).where(
+                        RoleAssignment.user_id == UUID(str(profile.id)),
+                        RoleAssignment.role_type == "DIRECTOR",
+                        RoleAssignment.status == "active",
+                    )
+                )
+                assigned_schools = [normalize_school(sid) for sid in asg_res.scalars().all() if sid]
+                if not assigned_schools and profile.school:
+                    assigned_schools = [normalize_school(profile.school)]
 
             return User(
-                id=payload.get("sub"),
-                email=payload.get("email").strip().lower() if payload.get("email") else None,
+                id=str(profile.id),
+                email=profile.email,
                 roles=roles,
-                department=payload.get("department"),
-                school=payload.get("school"),
+                department=profile.department,
+                school=profile.school,
                 departments=dept_names if dept_names else None,
                 assigned_schools=assigned_schools if assigned_schools else None,
                 school_tracks=school_tracks_map,

@@ -142,9 +142,6 @@ async def upload_file(
             "name":     file.filename,
             "type":     content_type,
             "deduped":  deduped,
-            "debug_saved_path": local_path,
-            "debug_local_storage_dir": LOCAL_STORAGE_DIR,
-            "debug_use_local_storage": os.getenv("USE_LOCAL_STORAGE"),
         }
 
     # ── Mock (no GCP configured) ──────────────────────────────────────────────
@@ -157,8 +154,6 @@ async def upload_file(
             "name":     file.filename,
             "type":     content_type,
             "deduped":  False,
-            "debug_mock_path": object_key,
-            "debug_use_local_storage": os.getenv("USE_LOCAL_STORAGE"),
         }
 
     # ── GCS ───────────────────────────────────────────────────────────────────
@@ -173,8 +168,6 @@ async def upload_file(
             "publicId": object_key,
             "name":     file.filename,
             "type":     content_type,
-            "debug_gcs_key": object_key,
-            "debug_use_local_storage": os.getenv("USE_LOCAL_STORAGE"),
         }
     except Exception as exc:
         logger.error(f"[DEBUG UPLOAD] GCS upload failed: {exc}")
@@ -195,27 +188,21 @@ async def view_file(path: str):
     """
     use_local = os.getenv("USE_LOCAL_STORAGE", "false").replace('"', '').replace("'", "").lower() == "true"
     logger.info(f"[DEBUG VIEW] Requested view path: {path}")
-    logger.info(f"[DEBUG VIEW] use_local: {use_local}, LOCAL_STORAGE_DIR: {LOCAL_STORAGE_DIR}, GCP_BUCKET_NAME: {GCP_BUCKET_NAME}")
     if use_local or not GCP_BUCKET_NAME:
         target_path = os.path.join(LOCAL_STORAGE_DIR, path)
-        logger.info(f"[DEBUG VIEW] Resolved target_path: {target_path}")
         exists = os.path.exists(target_path)
-        logger.info(f"[DEBUG VIEW] Target path exists on disk: {exists}")
         if not exists:
-            logger.error(f"[DEBUG VIEW] File not found at path: {target_path}")
             raise HTTPException(
                 status_code=404,
-                detail=f"File not found. Looking in target_path: {target_path}. exists: {exists}, LOCAL_STORAGE_DIR: {LOCAL_STORAGE_DIR}"
+                detail="File not found."
             )
         # Security check: prevent directory traversal
         abs_target = os.path.abspath(target_path)
         abs_base = os.path.abspath(LOCAL_STORAGE_DIR)
-        logger.info(f"[DEBUG VIEW] abs_target: {abs_target}, abs_base: {abs_base}")
         if not abs_target.startswith(abs_base):
-            logger.error(f"[DEBUG VIEW] Security check failed: {abs_target} does not start with {abs_base}")
             raise HTTPException(
                 status_code=403,
-                detail=f"Forbidden. abs_target: {abs_target}, abs_base: {abs_base}"
+                detail="Forbidden."
             )
         logger.info(f"[DEBUG VIEW] Serving file via FileResponse: {target_path}")
         return FileResponse(target_path)
