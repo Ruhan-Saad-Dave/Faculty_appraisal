@@ -517,3 +517,137 @@ async def test_standard_appraisal_part_d_compatibility(registrar_override):
         await db.execute(delete(FacultyProfile).where(FacultyProfile.email == fac_email))
         await db.commit()
 
+
+@pytest.mark.asyncio
+async def test_dynamic_registrar_part_sections_edit_persistence():
+    """
+    Verifies that for a dynamic form with a registrar_part=True section:
+    1. Registrar releases Part D with edited section rows in `sections`.
+    2. Overwrites `snapshot.payload["form"][section_code]` in DB.
+    3. Stashes `registrar_edited_sections` on AppraisalReview.
+    4. GET /dashboard/faculty/{email} returns the Registrar's edited section data.
+    5. Unauthorized section keys in `sections` are rejected with 400.
+    6. Non-dict `sections` are rejected with 400.
+    """
+    transport = ASGITransport(app=app)
+    fam = "dynamic_edit_fam"
+    sec_code = "custom_dynamic_reg_s_1"
+    fac_email = "dynamic_edit_fac@test.com"
+    academic_year = "2025-2026"
+
+    # Setup: Clean existing & insert dynamic section and faculty profile
+    async with AsyncSessionLocal() as db:
+        await db.execute(delete(Declaration).where(Declaration.faculty_email == fac_email))
+        await db.execute(delete(AppraisalSnapshot).where(AppraisalSnapshot.faculty_email == fac_email))
+        await db.execute(delete(AppraisalReview).where(AppraisalReview.faculty_email == fac_email))
+        await db.execute(delete(FormSectionDefinition).where(FormSectionDefinition.form_family == fam))
+        await db.execute(delete(FacultyProfile).where(FacultyProfile.email == fac_email))
+
+        sec = FormSectionDefinition(
+            code=sec_code,
+            form_family=fam,
+            part="Registrar Evaluation Part",
+            section_key="reg_eval_table",
+            title="Registrar Evaluation Table",
+            max_marks=20.0,
+            active=True,
+            order=1,
+            registrar_part=True,
+            fields=[{"id": "f1", "key": "col1", "label": "Column 1", "type": "text", "active": True}]
+        )
+        db.add(sec)
+
+        prof = FacultyProfile(
+            email=fac_email,
+            full_name="Dynamic Edit Faculty",
+            school="School of Design",
+            department="Design",
+            appraisal_role="Faculty"
+        )
+        db.add(prof)
+        await db.commit()
+
+    invalidate_form_schema_cache(fam)
+
+    # 1. Faculty submits initial form with faculty row
+    app.dependency_overrides[get_current_user] = make_faculty_override(fac_email, "School of Design")
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        submit_payload = {
+            "academic_year": academic_year,
+            "form_family": fam,
+            "form": {
+                "form_family": fam,
+                sec_code: [{"col1": "faculty original value"}]
+            },
+            "totals": {
+                "partATotal": 40.0,
+                "partBTotal": 30.0,
+                "grandTotal": 70.0
+            }
+        }
+        res_sub = await client.post("/api/v1/appraisal/submit", json=submit_payload)
+        assert res_sub.status_code == 200, res_sub.text
+
+    # 2. Registrar acts:
+    app.dependency_overrides[get_current_user] = lambda: User(id="reg-id", email="registrar@test.com", roles=["registrar"])
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # A. Non-dict sections -> 400
+        res_invalid_type = await client.post(
+            f"/api/v1/dashboard/part-d-release/{fac_email}",
+            json={
+                "registrar_part_d_score": 15.0,
+                "academic_year": academic_year,
+                "sections": ["not", "a", "dict"]
+            }
+        )
+        assert res_invalid_type.status_code == 400
+
+        # B. Unauthorized section code -> 400
+        res_unauth = await client.post(
+            f"/api/v1/dashboard/part-d-release/{fac_email}",
+            json={
+                "registrar_part_d_score": 15.0,
+                "academic_year": academic_year,
+                "sections": {"unauthorized_section_xyz": [{"col1": "hacked"}]}
+            }
+        )
+        assert res_unauth.status_code == 400
+        assert "Unauthorized section" in res_unauth.json()["detail"]
+
+        # C. Valid release with edited section
+        edited_rows = [{"col1": "registrar updated value", "verified": True}]
+        res_ok = await client.post(
+            f"/api/v1/dashboard/part-d-release/{fac_email}",
+            json={
+                "registrar_part_d_score": 18.0,
+                "academic_year": academic_year,
+                "remarks": "Reviewed and updated by Registrar",
+                "sections": {sec_code: edited_rows}
+            }
+        )
+        assert res_ok.status_code == 200
+        assert res_ok.json()["part_d_status"] == "released"
+        assert res_ok.json()["part_d_total"] == 18.0
+
+        # 3. GET /dashboard/faculty/{email} returns the updated section under payload.form
+        res_fac = await client.get(f"/api/v1/dashboard/faculty/{fac_email}?academic_year={academic_year}")
+        assert res_fac.status_code == 200
+        fac_data = res_fac.json()
+        assert fac_data["payload"]["form"][sec_code] == edited_rows
+
+        # 4. Verify AppraisalReview has registrar_edited_sections
+        reg_review = next((r for r in fac_data["reviews"] if r["reviewer_role"] == "registrar"), None)
+        assert reg_review is not None
+        assert reg_review["section_scores"]["registrar_edited_sections"] == {sec_code: edited_rows}
+
+    # Cleanup
+    app.dependency_overrides.clear()
+    async with AsyncSessionLocal() as db:
+        await db.execute(delete(Declaration).where(Declaration.faculty_email == fac_email))
+        await db.execute(delete(AppraisalSnapshot).where(AppraisalSnapshot.faculty_email == fac_email))
+        await db.execute(delete(AppraisalReview).where(AppraisalReview.faculty_email == fac_email))
+        await db.execute(delete(FormSectionDefinition).where(FormSectionDefinition.form_family == fam))
+        await db.execute(delete(FacultyProfile).where(FacultyProfile.email == fac_email))
+        await db.commit()
+    invalidate_form_schema_cache(fam)
+

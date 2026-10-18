@@ -646,6 +646,7 @@ class PartDReleaseRequest(BaseModel):
     remarks: Optional[str] = None
     leave_management: Optional[list[dict]] = None
     academic_year: Optional[str] = None
+    sections: Optional[Dict[str, Any]] = None
 
 @router.get("/part-d-queue", response_model=List[dict])
 async def get_part_d_queue(
@@ -835,6 +836,31 @@ async def release_part_d(
                 snapshot.payload["form"]["leaveManagement"] = body.leave_management
             flag_modified(snapshot, "payload")
 
+    if body.sections is not None and not isinstance(body.sections, dict):
+        raise HTTPException(status_code=400, detail="sections must be an object when supplied")
+
+    if body.sections:
+        # Validate that every section key belongs to a registrar_part=True section on this schema
+        allowed_section_codes = {s.code for s in reg_secs} | {s.section_key for s in reg_secs if s.section_key}
+        unauthorized = [k for k in body.sections.keys() if k not in allowed_section_codes]
+        if unauthorized:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unauthorized section(s) for Registrar edit: {', '.join(unauthorized)}"
+            )
+
+        if snapshot and isinstance(snapshot.payload, dict):
+            if "form" in snapshot.payload and isinstance(snapshot.payload["form"], dict):
+                target_form = snapshot.payload["form"]
+            elif "payload" in snapshot.payload and isinstance(snapshot.payload["payload"], dict) and isinstance(snapshot.payload["payload"].get("form"), dict):
+                target_form = snapshot.payload["payload"]["form"]
+            else:
+                snapshot.payload.setdefault("form", {})
+                target_form = snapshot.payload["form"]
+            for section_code, value in body.sections.items():
+                target_form[section_code] = value
+            flag_modified(snapshot, "payload")
+
     from decimal import Decimal
     part_d_value = Decimal(str(body.registrar_part_d_score))
 
@@ -851,6 +877,8 @@ async def release_part_d(
         section_scores = {}
         if body.leave_management is not None:
             section_scores["registrar_part_d_leave_management"] = body.leave_management
+        if body.sections:
+            section_scores["registrar_edited_sections"] = body.sections
         rev = AppraisalReview(
             id=uuid.uuid4(),
             faculty_email=faculty_email,
@@ -881,6 +909,11 @@ async def release_part_d(
         if body.leave_management is not None:
             curr_scores = dict(rev.section_scores or {})
             curr_scores["registrar_part_d_leave_management"] = body.leave_management
+            rev.section_scores = curr_scores
+            flag_modified(rev, "section_scores")
+        if body.sections:
+            curr_scores = dict(rev.section_scores or {})
+            curr_scores["registrar_edited_sections"] = body.sections
             rev.section_scores = curr_scores
             flag_modified(rev, "section_scores")
 
