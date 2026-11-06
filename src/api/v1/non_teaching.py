@@ -42,8 +42,9 @@ async def _resolve_template(
         res = await db.execute(
             select(NTWorkflowAssignment).options(_assign_chain)
             .where(NTWorkflowAssignment.staff_email == staff_email)
+            .order_by(NTWorkflowAssignment.updated_at.desc(), NTWorkflowAssignment.created_at.desc())
         )
-        a = res.scalar_one_or_none()
+        a = res.scalars().first()
         if a:
             return a.template
 
@@ -51,8 +52,9 @@ async def _resolve_template(
         res = await db.execute(
             select(NTWorkflowAssignment).options(_assign_chain)
             .where(NTWorkflowAssignment.department == department)
+            .order_by(NTWorkflowAssignment.updated_at.desc(), NTWorkflowAssignment.created_at.desc())
         )
-        a = res.scalar_one_or_none()
+        a = res.scalars().first()
         if a:
             return a.template
 
@@ -60,8 +62,9 @@ async def _resolve_template(
         res = await db.execute(
             select(NTWorkflowAssignment).options(_assign_chain)
             .where(NTWorkflowAssignment.appraisal_role == appraisal_role)
+            .order_by(NTWorkflowAssignment.updated_at.desc(), NTWorkflowAssignment.created_at.desc())
         )
-        a = res.scalar_one_or_none()
+        a = res.scalars().first()
         if a:
             return a.template
 
@@ -69,8 +72,9 @@ async def _resolve_template(
         select(NTWorkflowTemplate)
         .options(_step_chain)
         .where(NTWorkflowTemplate.is_default == True, NTWorkflowTemplate.is_active == True)
+        .order_by(NTWorkflowTemplate.updated_at.desc(), NTWorkflowTemplate.created_at.desc())
     )
-    return res.scalar_one_or_none()
+    return res.scalars().first()
 
 
 @router.get("/workflow-template")

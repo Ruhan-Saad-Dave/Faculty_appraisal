@@ -113,6 +113,41 @@ async def run_db_cleanup():
                         )
             await session.commit()
             logger.info("Email normalization completed successfully.")
+
+            # Step 3: Self-healing deduplication of NT workflow assignments
+            try:
+                await session.execute(text("""
+                    DELETE FROM public.nt_workflow_assignments
+                    WHERE id NOT IN (
+                        SELECT DISTINCT ON (appraisal_role) id
+                        FROM public.nt_workflow_assignments
+                        WHERE appraisal_role IS NOT NULL
+                        ORDER BY appraisal_role, updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+                    ) AND appraisal_role IS NOT NULL;
+                """))
+                await session.execute(text("""
+                    DELETE FROM public.nt_workflow_assignments
+                    WHERE id NOT IN (
+                        SELECT DISTINCT ON (department) id
+                        FROM public.nt_workflow_assignments
+                        WHERE department IS NOT NULL
+                        ORDER BY department, updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+                    ) AND department IS NOT NULL;
+                """))
+                await session.execute(text("""
+                    DELETE FROM public.nt_workflow_assignments
+                    WHERE id NOT IN (
+                        SELECT DISTINCT ON (staff_email) id
+                        FROM public.nt_workflow_assignments
+                        WHERE staff_email IS NOT NULL
+                        ORDER BY staff_email, updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+                    ) AND staff_email IS NOT NULL;
+                """))
+                await session.commit()
+                logger.info("NT workflow assignments deduplication completed successfully.")
+            except Exception as nt_dedup_err:
+                logger.warning(f"Note on NT workflow assignments deduplication: {nt_dedup_err}")
+                await session.rollback()
                 
         except Exception as e:
             await session.rollback()

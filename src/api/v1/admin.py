@@ -1359,14 +1359,14 @@ async def create_assignment(
     if not t_res.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Template not found")
 
-    q = select(NTWorkflowAssignment).where(NTWorkflowAssignment.template_id == data.template_id)
+    q = select(NTWorkflowAssignment)
     if data.staff_email:
         q = q.where(NTWorkflowAssignment.staff_email == data.staff_email)
     elif data.appraisal_role:
         q = q.where(NTWorkflowAssignment.appraisal_role == data.appraisal_role)
     elif data.department:
         q = q.where(NTWorkflowAssignment.department == data.department)
-    if (await db.execute(q)).scalar_one_or_none():
+    if (await db.execute(q)).scalars().first():
         raise HTTPException(status_code=400, detail="An assignment for this target already exists")
 
     a = NTWorkflowAssignment(
@@ -2087,6 +2087,25 @@ async def restore_database(
 
         # Clear connection pool again after restore completes to invalidate stale cached statements
         await engine.dispose()
+
+        # Automatically upgrade the restored database to the latest application schema
+        # by running auto-migrations (seeds missing tables like schools, adds missing columns)
+        # and self-healing db cleanup (email normalization).
+        try:
+            from src.setup.database import run_auto_migrations
+            from src.setup.db_cleanup import run_db_cleanup
+            await run_auto_migrations()
+            await run_db_cleanup()
+
+            # Invalidate form schema cache to reflect updated section definitions
+            from src.api.v1.appraisal import invalidate_form_schema_cache
+            invalidate_form_schema_cache()
+        except Exception as post_mig_err:
+            logger.error(f'Post-restore auto-migration failed: {post_mig_err}', exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f'Database restored, but post-restore schema upgrade failed: {str(post_mig_err)}'
+            )
 
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr or e.stdout or str(e)
